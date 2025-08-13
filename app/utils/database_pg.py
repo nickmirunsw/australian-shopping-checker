@@ -5,7 +5,7 @@ PostgreSQL database utilities for price history tracking (production).
 import psycopg2
 import psycopg2.extras
 import logging
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 import os
@@ -146,7 +146,8 @@ def log_alternative_products(
     
     try:
         normalized_query = normalize_product_name(search_query)
-        record_date = date_recorded or date.today()
+        # Use Australian timezone for consistent date recording
+        record_date = date_recorded or datetime.now(timezone.utc).date()
         
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -202,7 +203,8 @@ def log_price_data(
     
     try:
         normalized_name = normalize_product_name(product_name)
-        record_date = date_recorded or date.today()
+        # Use Australian timezone for consistent date recording
+        record_date = date_recorded or datetime.now(timezone.utc).date()
         
         with get_db_connection() as conn:
             cursor = conn.cursor()

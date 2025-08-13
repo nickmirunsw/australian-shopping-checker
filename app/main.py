@@ -17,6 +17,13 @@ from .utils.graceful_degradation import get_degradation_status
 from .utils.db_config import get_alternative_products, get_database_stats, clear_all_price_history
 from .utils.auth import authenticate_admin, is_admin_authenticated, logout_admin, cleanup_expired_sessions
 
+def extract_session_token(request: Request) -> Optional[str]:
+    """Extract session token from Authorization header."""
+    session_token = request.headers.get("Authorization")
+    if session_token and session_token.startswith("Bearer "):
+        return session_token[7:]  # Remove "Bearer " prefix
+    return None
+
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
@@ -450,7 +457,8 @@ async def get_sale_prediction_endpoint(
 @app.get("/admin/price-history/{product_name}/{retailer}")
 async def admin_get_price_history(product_name: str, retailer: str, request: Request):
     """Admin endpoint to get price history for a specific product."""
-    if not is_admin_authenticated(request):
+    session_token = extract_session_token(request)
+    if not is_admin_authenticated(session_token):
         raise HTTPException(status_code=401, detail="Admin authentication required")
     
     try:
@@ -475,7 +483,8 @@ async def admin_get_price_history(product_name: str, retailer: str, request: Req
 @app.post("/admin/favorites")
 async def add_favorite(request: Request):
     """Add product to admin favorites."""
-    if not is_admin_authenticated(request):
+    session_token = extract_session_token(request)
+    if not is_admin_authenticated(session_token):
         raise HTTPException(status_code=401, detail="Admin authentication required")
     
     try:
@@ -498,7 +507,8 @@ async def add_favorite(request: Request):
 @app.get("/admin/favorites")
 async def get_favorites(request: Request):
     """Get admin favorites list."""
-    if not is_admin_authenticated(request):
+    session_token = extract_session_token(request)
+    if not is_admin_authenticated(session_token):
         raise HTTPException(status_code=401, detail="Admin authentication required")
     
     try:
@@ -516,7 +526,8 @@ async def get_favorites(request: Request):
 @app.delete("/admin/favorites/{favorite_id}")
 async def remove_favorite(favorite_id: int, request: Request):
     """Remove product from admin favorites."""
-    if not is_admin_authenticated(request):
+    session_token = extract_session_token(request)
+    if not is_admin_authenticated(session_token):
         raise HTTPException(status_code=401, detail="Admin authentication required")
     
     try:

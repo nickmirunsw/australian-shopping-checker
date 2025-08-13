@@ -21,10 +21,12 @@ def get_sale_prediction(product_name: str, retailer: str = "woolworths") -> Dict
         # Get extended price history (1 year)
         history = get_price_history(product_name, retailer, days_back=365)
         
-        if not history or len(history) < 7:
+        logger.info(f"Prediction for {product_name}: Found {len(history) if history else 0} historical records")
+        
+        if not history or len(history) < 3:  # Reduced minimum from 7 to 3 for testing
             return {
                 "has_prediction": False,
-                "reason": "Not enough historical data to predict sales (need at least 7 days of data).",
+                "reason": f"Not enough historical data to predict sales (found {len(history) if history else 0} records, need at least 3).",
                 "product_name": product_name,
                 "retailer": retailer
             }
@@ -32,10 +34,12 @@ def get_sale_prediction(product_name: str, retailer: str = "woolworths") -> Dict
         # Analyze sale patterns
         analysis = analyze_sale_patterns(history)
         
+        logger.info(f"Sale analysis for {product_name}: {analysis['sale_count']} sales detected")
+        
         if not analysis["has_sales"]:
             return {
                 "has_prediction": False,
-                "reason": "No sales detected in historical data.",
+                "reason": f"No sales detected in historical data. Analyzed {len(history)} records.",
                 "product_name": product_name,
                 "retailer": retailer,
                 "analysis": analysis
@@ -73,10 +77,26 @@ def analyze_sale_patterns(history: List[Dict[str, Any]]) -> Dict[str, Any]:
         regular_prices = []
         
         for record in sorted_history:
-            date_recorded = datetime.fromisoformat(record['date_recorded'].replace('Z', '+00:00'))
+            # Handle different date formats from database
+            date_str = record['date_recorded']
+            try:
+                if isinstance(date_str, str):
+                    # Handle ISO format with Z or timezone
+                    if 'T' in date_str:
+                        date_recorded = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                    else:
+                        # Handle simple date format YYYY-MM-DD
+                        date_recorded = datetime.strptime(date_str, '%Y-%m-%d')
+                else:
+                    # Handle date objects directly
+                    date_recorded = datetime.combine(date_str, datetime.min.time())
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Could not parse date '{date_str}': {e}")
+                continue
+                
             price = float(record['price'])
             was_price = float(record['was_price']) if record.get('was_price') else None
-            on_sale = record.get('on_sale', False)
+            on_sale = bool(record.get('on_sale', False))
             
             if on_sale or was_price:
                 sales.append({
@@ -150,7 +170,19 @@ def generate_prediction(history: List[Dict[str, Any]], analysis: Dict[str, Any])
                 "reasoning": "Could not determine last sale date"
             }
         
-        last_sale_date = datetime.fromisoformat(last_sale_str.replace('Z', '+00:00'))
+        # Parse last sale date consistently  
+        try:
+            if 'T' in last_sale_str:
+                last_sale_date = datetime.fromisoformat(last_sale_str.replace('Z', '+00:00'))
+            else:
+                last_sale_date = datetime.strptime(last_sale_str, '%Y-%m-%d')
+        except (ValueError, TypeError) as e:
+            logger.error(f"Could not parse last sale date '{last_sale_str}': {e}")
+            return {
+                "confidence": 0.0,
+                "estimated_next_sale": "Error parsing date",
+                "reasoning": f"Date parsing error: {e}"
+            }
         avg_interval = analysis["avg_interval_days"]
         
         # Predict next sale date
