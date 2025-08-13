@@ -350,7 +350,7 @@ async def admin_get_tracked_products(request: Request):
         )
     
     try:
-        from .utils.database import get_all_tracked_products
+        from .utils.db_config import get_all_tracked_products
         products = get_all_tracked_products()
         
         return {
@@ -376,7 +376,7 @@ async def admin_delete_product(request: Request, product_name: str, retailer: st
         )
     
     try:
-        from .utils.database import delete_product_history
+        from .utils.db_config import delete_product_history
         result = delete_product_history(product_name, retailer)
         
         if result['success']:
@@ -405,7 +405,7 @@ async def get_price_history_endpoint(
 ):
     """Get price history for a specific product."""
     try:
-        from .utils.database import get_price_history
+        from .utils.db_config import get_price_history
         
         history = get_price_history(product_name, retailer, days_back)
         
