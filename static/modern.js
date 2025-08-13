@@ -324,6 +324,11 @@ class ModernShoppingApp {
             const productCard = this.createProductCard(result);
             container.appendChild(productCard);
         });
+        
+        // Re-initialize lucide icons for the new content
+        if (window.lucide) {
+            lucide.createIcons();
+        }
     }
 
     createProductCard(result) {
@@ -348,7 +353,7 @@ class ModernShoppingApp {
             </div>
             <div class="product-body">
                 <div class="alternatives-grid">
-                    ${result.alternatives.map(alt => this.createAlternativeItem(alt, result.input)).join('')}
+                    ${result.alternatives.map(alt => this.createAlternativeItem(alt, result.input, !!this.adminSessionToken)).join('')}
                 </div>
             </div>
         `;
@@ -356,7 +361,7 @@ class ModernShoppingApp {
         return card;
     }
 
-    createAlternativeItem(alt, inputName) {
+    createAlternativeItem(alt, inputName, isAdmin = false) {
         return `
             <div class="alternative-item">
                 <div class="alternative-info">
@@ -375,7 +380,7 @@ class ModernShoppingApp {
                                 class="btn btn-ghost btn-sm" title="Price History">
                             <i data-lucide="trending-up"></i>
                         </button>
-                        ${this.adminSessionToken ? `
+                        ${isAdmin ? `
                             <button onclick="app.addToFavorites('${alt.name}', '${alt.retailer || 'woolworths'}')" 
                                     class="btn btn-ghost btn-sm" title="Add to Favorites">
                                 <i data-lucide="heart"></i>
@@ -397,6 +402,7 @@ class ModernShoppingApp {
         } else {
             panel.classList.add('active');
             button.classList.add('active');
+            console.log('Admin panel opened');
         }
     }
 
@@ -475,6 +481,11 @@ class ModernShoppingApp {
                 this.updateAdminUI(true);
                 this.refreshDatabaseStats();
                 this.showToast('Admin login successful', 'success');
+                
+                // Refresh results to show admin features like favorites buttons
+                if (this.results) {
+                    this.displayResults(this.results);
+                }
             } else {
                 this.showToast('Login failed. Check your credentials.', 'error');
             }
@@ -815,11 +826,30 @@ class ModernShoppingApp {
 
     async showPriceHistory(productName, retailer) {
         try {
-            const response = await this.makeAuthenticatedRequest(`/admin/price-history/${encodeURIComponent(productName)}/${encodeURIComponent(retailer)}`);
-            const data = await response.json();
+            // Try admin endpoint first if authenticated, then fallback to public endpoint
+            let response, data;
             
-            if (data.success) {
-                this.showPriceHistoryModal(data.history, productName, retailer);
+            if (this.adminSessionToken) {
+                try {
+                    response = await this.makeAuthenticatedRequest(`/admin/price-history/${encodeURIComponent(productName)}/${encodeURIComponent(retailer)}`);
+                    data = await response.json();
+                } catch (authError) {
+                    // If auth fails, try public endpoint
+                    response = await fetch(`/price-history/${encodeURIComponent(productName)}?retailer=${encodeURIComponent(retailer)}`);
+                    data = await response.json();
+                }
+            } else {
+                response = await fetch(`/price-history/${encodeURIComponent(productName)}?retailer=${encodeURIComponent(retailer)}`);
+                data = await response.json();
+            }
+            
+            if (response.ok && (data.success || data.history)) {
+                const history = data.history || data.history || [];
+                if (history.length > 0) {
+                    this.showPriceHistoryModal(history, productName, retailer);
+                } else {
+                    this.showToast('No price history available', 'warning');
+                }
             } else {
                 this.showToast('No price history available', 'warning');
             }
