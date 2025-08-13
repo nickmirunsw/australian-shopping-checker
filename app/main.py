@@ -556,6 +556,52 @@ async def admin_init_database(request: Request):
             detail=f"Failed to initialize database: {str(e)}"
         )
 
+@app.get("/admin/debug-db")
+async def debug_database(request: Request):
+    """Debug database contents (admin only)."""
+    if not require_admin_auth(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required"
+        )
+    
+    try:
+        from .utils.db_config import get_db_connection
+        import psycopg2.extras
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            # Get raw price history count
+            cursor.execute("SELECT COUNT(*) as count FROM price_history")
+            price_count = cursor.fetchone()['count']
+            
+            # Get sample price history records
+            cursor.execute("SELECT * FROM price_history LIMIT 5")
+            sample_price_records = [dict(row) for row in cursor.fetchall()]
+            
+            # Get distinct products
+            cursor.execute("""
+                SELECT DISTINCT product_name, retailer 
+                FROM price_history 
+                LIMIT 10
+            """)
+            distinct_products = [dict(row) for row in cursor.fetchall()]
+            
+            return {
+                "success": True,
+                "price_history_count": price_count,
+                "sample_records": sample_price_records,
+                "distinct_products": distinct_products
+            }
+        
+    except Exception as e:
+        logger.error(f"Database debug error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Debug failed: {str(e)}"
+        )
+
 @app.post("/check", response_model=CheckItemsResponse)
 async def check_items(request_body: CheckItemsRequest, request: Request):
     """
