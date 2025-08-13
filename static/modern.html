@@ -134,6 +134,9 @@
                     <i data-lucide="shopping-bag"></i>
                     <h3>Ready to find great prices?</h3>
                     <p>Add items to your shopping list and we'll find the best deals at Woolworths.</p>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                        💡 <strong>Admin:</strong> Click the ⚙️ settings icon to access admin features
+                    </div>
                 </div>
 
                 <div id="resultsContainer" class="results-container hidden"></div>
@@ -165,6 +168,14 @@
 
                 <!-- Admin Controls -->
                 <div id="adminControls" class="admin-controls hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--color-success); color: white; border-radius: 0.5rem;">
+                        <span>✅ Logged in as admin</span>
+                        <button id="adminLogoutBtn" class="btn btn-ghost btn-sm" style="color: white; border-color: white;">
+                            <i data-lucide="log-out"></i>
+                            Logout
+                        </button>
+                    </div>
+                    
                     <div class="admin-grid">
                         <button id="viewProductsBtn" class="admin-card">
                             <i data-lucide="database"></i>

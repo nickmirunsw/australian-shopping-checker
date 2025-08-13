@@ -85,6 +85,10 @@ class ModernShoppingApp {
             this.performAdminLogin();
         });
 
+        document.getElementById('adminLogoutBtn')?.addEventListener('click', () => {
+            this.performAdminLogout();
+        });
+
         // Admin controls
         document.getElementById('viewProductsBtn')?.addEventListener('click', () => {
             this.viewTrackedProducts();
@@ -482,6 +486,9 @@ class ModernShoppingApp {
                 this.refreshDatabaseStats();
                 this.showToast('Admin login successful', 'success');
                 
+                // Re-setup event listeners for logout button
+                this.setupAdminEventListeners();
+                
                 // Refresh results to show admin features like favorites buttons
                 if (this.results) {
                     this.displayResults(this.results);
@@ -493,6 +500,46 @@ class ModernShoppingApp {
             console.error('Admin login error:', error);
             this.showToast('Login error. Please try again.', 'error');
         }
+    }
+
+    performAdminLogout() {
+        this.adminSessionToken = null;
+        localStorage.removeItem('adminSessionToken');
+        this.updateAdminUI(false);
+        this.showToast('Logged out successfully', 'success');
+        
+        // Refresh results to hide admin features
+        if (this.results) {
+            this.displayResults(this.results);
+        }
+    }
+
+    setupAdminEventListeners() {
+        // Setup logout button event listener (called after login)
+        document.getElementById('adminLogoutBtn')?.addEventListener('click', () => {
+            this.performAdminLogout();
+        });
+        
+        // Setup admin control buttons
+        document.getElementById('viewProductsBtn')?.addEventListener('click', () => {
+            this.viewTrackedProducts();
+        });
+
+        document.getElementById('generateDummyBtn')?.addEventListener('click', () => {
+            this.generateDummyData();
+        });
+
+        document.getElementById('clearDatabaseBtn')?.addEventListener('click', () => {
+            this.clearDatabase();
+        });
+
+        document.getElementById('dailyUpdateBtn')?.addEventListener('click', () => {
+            this.runDailyUpdate();
+        });
+
+        document.getElementById('viewFavoritesBtn')?.addEventListener('click', () => {
+            this.viewFavorites();
+        });
     }
 
     async makeAuthenticatedRequest(url, options = {}) {
@@ -869,32 +916,14 @@ class ModernShoppingApp {
 
     async showPriceHistory(productName, retailer) {
         try {
-            // Try admin endpoint first if authenticated, then fallback to public endpoint
-            let response, data;
+            // Always use public endpoint to avoid auth issues
+            const response = await fetch(`/price-history/${encodeURIComponent(productName)}?retailer=${encodeURIComponent(retailer)}&days_back=365`);
+            const data = await response.json();
             
-            if (this.adminSessionToken) {
-                try {
-                    response = await this.makeAuthenticatedRequest(`/admin/price-history/${encodeURIComponent(productName)}/${encodeURIComponent(retailer)}`);
-                    data = await response.json();
-                } catch (authError) {
-                    // If auth fails, try public endpoint
-                    response = await fetch(`/price-history/${encodeURIComponent(productName)}?retailer=${encodeURIComponent(retailer)}`);
-                    data = await response.json();
-                }
+            if (response.ok && data.history && data.history.length > 0) {
+                this.showPriceHistoryModal(data.history, productName, retailer);
             } else {
-                response = await fetch(`/price-history/${encodeURIComponent(productName)}?retailer=${encodeURIComponent(retailer)}`);
-                data = await response.json();
-            }
-            
-            if (response.ok && (data.success || data.history)) {
-                const history = data.history || data.history || [];
-                if (history.length > 0) {
-                    this.showPriceHistoryModal(history, productName, retailer);
-                } else {
-                    this.showToast('No price history available', 'warning');
-                }
-            } else {
-                this.showToast('No price history available', 'warning');
+                this.showToast('No price history available for this product', 'warning');
             }
         } catch (error) {
             console.error('Error loading price history:', error);
