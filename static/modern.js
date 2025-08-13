@@ -10,7 +10,8 @@ class ModernShoppingApp {
         this.setupEventListeners();
         this.initializeTheme();
         this.refreshDatabaseStats();
-        this.checkAdminStatus();
+        // Remove auto-login on page load for security
+        this.updateAdminUI(false); // Start with logged out state
     }
 
     initializeApp() {

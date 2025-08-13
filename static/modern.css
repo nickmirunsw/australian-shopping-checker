@@ -752,6 +752,7 @@ body {
 [data-theme="dark"] .admin-card {
   background: var(--dark-bg-secondary);
   border-color: var(--color-gray-700);
+  color: var(--dark-text-primary);
 }
 
 .admin-card:hover {
