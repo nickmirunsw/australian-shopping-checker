@@ -446,6 +446,92 @@ async def get_sale_prediction_endpoint(
             detail="Failed to retrieve sale prediction"
         )
 
+# Admin Price History Endpoint  
+@app.get("/admin/price-history/{product_name}/{retailer}")
+async def admin_get_price_history(product_name: str, retailer: str, request: Request):
+    """Admin endpoint to get price history for a specific product."""
+    if not is_admin_authenticated(request):
+        raise HTTPException(status_code=401, detail="Admin authentication required")
+    
+    try:
+        from .utils.db_config import get_price_history
+        
+        history = get_price_history(product_name, retailer, days_back=365)  # Get full year
+        
+        if not history:
+            return {"success": False, "message": "No price history found"}
+            
+        return {
+            "success": True,
+            "history": history,
+            "product_name": product_name,
+            "retailer": retailer
+        }
+    except Exception as e:
+        logger.error(f"Failed to get admin price history for {product_name}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve price history")
+
+# Admin Favorites System
+@app.post("/admin/favorites")
+async def add_favorite(request: Request):
+    """Add product to admin favorites."""
+    if not is_admin_authenticated(request):
+        raise HTTPException(status_code=401, detail="Admin authentication required")
+    
+    try:
+        body = await request.json()
+        product_name = body.get('product_name')
+        retailer = body.get('retailer', 'woolworths')
+        
+        from .utils.db_config import add_to_favorites
+        success = add_to_favorites(product_name, retailer)
+        
+        if success:
+            return {"success": True, "message": "Added to favorites"}
+        else:
+            return {"success": False, "message": "Product already in favorites or failed to add"}
+            
+    except Exception as e:
+        logger.error(f"Failed to add favorite: {e}")
+        return {"success": False, "message": "Failed to add to favorites"}
+
+@app.get("/admin/favorites")
+async def get_favorites(request: Request):
+    """Get admin favorites list."""
+    if not is_admin_authenticated(request):
+        raise HTTPException(status_code=401, detail="Admin authentication required")
+    
+    try:
+        from .utils.db_config import get_favorites
+        favorites = get_favorites()
+        
+        return {
+            "success": True,
+            "favorites": favorites
+        }
+    except Exception as e:
+        logger.error(f"Failed to get favorites: {e}")
+        return {"success": False, "message": "Failed to load favorites"}
+
+@app.delete("/admin/favorites/{favorite_id}")
+async def remove_favorite(favorite_id: int, request: Request):
+    """Remove product from admin favorites."""
+    if not is_admin_authenticated(request):
+        raise HTTPException(status_code=401, detail="Admin authentication required")
+    
+    try:
+        from .utils.db_config import remove_from_favorites
+        success = remove_from_favorites(favorite_id)
+        
+        if success:
+            return {"success": True, "message": "Removed from favorites"}
+        else:
+            return {"success": False, "message": "Failed to remove from favorites"}
+            
+    except Exception as e:
+        logger.error(f"Failed to remove favorite: {e}")
+        return {"success": False, "message": "Failed to remove from favorites"}
+
 @app.post("/admin/batch-price-update")
 async def admin_batch_price_update(
     request: Request,

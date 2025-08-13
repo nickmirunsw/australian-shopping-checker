@@ -93,6 +93,17 @@ def init_database():
             )
         """)
         
+        # Create favorites table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS favorites (
+                id SERIAL PRIMARY KEY,
+                product_name VARCHAR(500) NOT NULL,
+                retailer VARCHAR(50) NOT NULL DEFAULT 'woolworths',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(product_name, retailer)
+            )
+        """)
+        
         # Create indexes for faster queries
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_product_retailer_date 
@@ -475,6 +486,83 @@ def get_database_stats() -> Dict[str, Any]:
                 'unique_products': 0
             }
         }
+
+# Favorites System Functions
+def add_to_favorites(product_name: str, retailer: str) -> bool:
+    """Add product to admin favorites."""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Check if already exists
+            cursor.execute(
+                "SELECT id FROM favorites WHERE product_name = %s AND retailer = %s",
+                (product_name, retailer)
+            )
+            
+            if cursor.fetchone():
+                return False  # Already exists
+                
+            # Add to favorites
+            cursor.execute(
+                """INSERT INTO favorites (product_name, retailer) 
+                   VALUES (%s, %s)""",
+                (product_name, retailer)
+            )
+            
+            conn.commit()
+            logger.info(f"Added {product_name} ({retailer}) to favorites")
+            return True
+            
+    except Exception as e:
+        logger.error(f"Failed to add favorite: {e}")
+        return False
+
+def get_favorites() -> list:
+    """Get all admin favorites."""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT id, product_name, retailer, created_at
+                FROM favorites
+                ORDER BY created_at DESC
+            """)
+            
+            favorites = []
+            for row in cursor.fetchall():
+                favorites.append({
+                    'id': row[0],
+                    'product_name': row[1],
+                    'retailer': row[2],
+                    'created_at': row[3].isoformat() if row[3] else None
+                })
+            
+            return favorites
+            
+    except Exception as e:
+        logger.error(f"Failed to get favorites: {e}")
+        return []
+
+def remove_from_favorites(favorite_id: int) -> bool:
+    """Remove product from admin favorites."""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute("DELETE FROM favorites WHERE id = %s", (favorite_id,))
+            
+            if cursor.rowcount > 0:
+                conn.commit()
+                logger.info(f"Removed favorite ID {favorite_id}")
+                return True
+            else:
+                return False
+                
+    except Exception as e:
+        logger.error(f"Failed to remove favorite: {e}")
+        return False
 
 # Auto-initialize database on import in production
 try:

@@ -102,6 +102,10 @@ class ModernShoppingApp {
             this.runDailyUpdate();
         });
 
+        document.getElementById('viewFavoritesBtn')?.addEventListener('click', () => {
+            this.viewFavorites();
+        });
+
         // Modal close on overlay click
         document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
             if (e.target.id === 'modalOverlay') {
@@ -336,11 +340,15 @@ class ModernShoppingApp {
                     <span>Best: ${bestMatch.name}</span>
                     <span>$${bestMatch.price}</span>
                     ${onSaleCount > 0 ? `<span>${onSaleCount} on sale</span>` : ''}
+                    <button onclick="app.showPriceHistory('${bestMatch.name}', '${bestMatch.retailer || 'woolworths'}')" 
+                            class="btn btn-ghost btn-sm" title="Price History">
+                        <i data-lucide="trending-up"></i>
+                    </button>
                 </div>
             </div>
             <div class="product-body">
                 <div class="alternatives-grid">
-                    ${result.alternatives.map(alt => this.createAlternativeItem(alt)).join('')}
+                    ${result.alternatives.map(alt => this.createAlternativeItem(alt, result.input)).join('')}
                 </div>
             </div>
         `;
@@ -348,7 +356,7 @@ class ModernShoppingApp {
         return card;
     }
 
-    createAlternativeItem(alt) {
+    createAlternativeItem(alt, inputName) {
         return `
             <div class="alternative-item">
                 <div class="alternative-info">
@@ -362,6 +370,18 @@ class ModernShoppingApp {
                     <div class="current-price">$${alt.price || 'N/A'}</div>
                     ${alt.was ? `<div class="was-price">was $${alt.was}</div>` : ''}
                     ${alt.onSale ? '<div class="sale-badge">ON SALE</div>' : ''}
+                    <div class="alternative-actions">
+                        <button onclick="app.showPriceHistory('${alt.name}', '${alt.retailer || 'woolworths'}')" 
+                                class="btn btn-ghost btn-sm" title="Price History">
+                            <i data-lucide="trending-up"></i>
+                        </button>
+                        ${this.adminSessionToken ? `
+                            <button onclick="app.addToFavorites('${alt.name}', '${alt.retailer || 'woolworths'}')" 
+                                    class="btn btn-ghost btn-sm" title="Add to Favorites">
+                                <i data-lucide="heart"></i>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
         `;
@@ -547,33 +567,53 @@ class ModernShoppingApp {
     }
 
     showProductsModal(products) {
+        // Categorize products
+        const categories = this.categorizeProducts(products);
+        
         const modal = document.getElementById('modalContent');
         modal.innerHTML = `
-            <div style="padding: 2rem; max-width: 800px;">
+            <div style="padding: 2rem; max-width: 900px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h2 style="margin: 0;">Tracked Products (${products.length})</h2>
                     <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
                 </div>
                 
-                <div style="max-height: 60vh; overflow-y: auto;">
+                <div style="max-height: 70vh; overflow-y: auto;">
                     ${products.length > 0 ? `
-                        <div style="display: grid; gap: 0.75rem;">
-                            ${products.map(product => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--color-gray-200);">
-                                    <div>
-                                        <div style="font-weight: 500; color: var(--text-primary);">${product.product_name}</div>
-                                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
-                                            ${product.retailer} • ${product.record_count} records • 
-                                            ${product.first_seen} to ${product.last_seen}
+                        ${Object.entries(categories).map(([category, items]) => `
+                            <div style="margin-bottom: 2rem;">
+                                <h3 style="margin-bottom: 1rem; color: var(--color-primary); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    ${category} (${items.length})
+                                </h3>
+                                <div style="display: grid; gap: 0.5rem;">
+                                    ${items.map(product => `
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--color-gray-200);">
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 500; color: var(--text-primary); font-size: 0.9rem;">${product.product_name}</div>
+                                                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                                    ${product.retailer} • ${product.record_count} records • 
+                                                    ${product.first_seen} to ${product.last_seen}
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                                                <button onclick="app.showPriceHistory('${product.product_name}', '${product.retailer}')" 
+                                                        style="padding: 0.4rem 0.6rem; background: var(--color-primary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                                    History
+                                                </button>
+                                                <button onclick="app.addToFavorites('${product.product_name}', '${product.retailer}')" 
+                                                        style="padding: 0.4rem 0.6rem; background: var(--color-secondary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                                    ♥ Fav
+                                                </button>
+                                                <button onclick="app.deleteProduct('${product.product_name}', '${product.retailer}')" 
+                                                        style="padding: 0.4rem 0.6rem; background: var(--color-error); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <button onclick="app.deleteProduct('${product.product_name}', '${product.retailer}')" 
-                                            style="padding: 0.5rem; background: var(--color-error); color: white; border: none; border-radius: 0.25rem; cursor: pointer;">
-                                        Delete
-                                    </button>
+                                    `).join('')}
                                 </div>
-                            `).join('')}
-                        </div>
+                            </div>
+                        `).join('')}
                     ` : `
                         <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
                             No products being tracked yet. Use the search feature to start tracking prices!
@@ -584,6 +624,91 @@ class ModernShoppingApp {
         `;
         
         this.showModal();
+    }
+
+    categorizeProducts(products) {
+        const categories = {
+            'Dairy & Eggs': [],
+            'Meat & Poultry': [],
+            'Bakery': [],
+            'Fruits & Vegetables': [],
+            'Pantry & Dry Goods': [],
+            'Snacks & Confectionery': [],
+            'Beverages': [],
+            'Frozen Foods': [],
+            'Health & Beauty': [],
+            'Household': [],
+            'Other': []
+        };
+
+        products.forEach(product => {
+            const name = product.product_name.toLowerCase();
+            let categorized = false;
+
+            // Dairy & Eggs
+            if (/milk|cheese|yoghurt|yogurt|butter|cream|egg|dairy/.test(name)) {
+                categories['Dairy & Eggs'].push(product);
+                categorized = true;
+            }
+            // Meat & Poultry  
+            else if (/chicken|beef|pork|lamb|fish|salmon|tuna|meat|sausage|bacon|ham/.test(name)) {
+                categories['Meat & Poultry'].push(product);
+                categorized = true;
+            }
+            // Bakery
+            else if (/bread|roll|bagel|muffin|cake|pastry|biscuit|cookie/.test(name)) {
+                categories['Bakery'].push(product);
+                categorized = true;
+            }
+            // Fruits & Vegetables
+            else if (/banana|apple|orange|tomato|lettuce|carrot|potato|onion|fruit|vegetable|salad/.test(name)) {
+                categories['Fruits & Vegetables'].push(product);
+                categorized = true;
+            }
+            // Pantry & Dry Goods
+            else if (/rice|pasta|cereal|flour|sugar|salt|oil|sauce|spice|tin|can/.test(name)) {
+                categories['Pantry & Dry Goods'].push(product);
+                categorized = true;
+            }
+            // Snacks & Confectionery
+            else if (/chocolate|lolly|candy|chips|crisp|biscuit|cookie|snack|nuts|cheezels/.test(name)) {
+                categories['Snacks & Confectionery'].push(product);
+                categorized = true;
+            }
+            // Beverages
+            else if (/juice|water|soft drink|coke|pepsi|tea|coffee|beer|wine|milk/.test(name)) {
+                categories['Beverages'].push(product);
+                categorized = true;
+            }
+            // Frozen Foods
+            else if (/frozen|ice cream|pizza/.test(name)) {
+                categories['Frozen Foods'].push(product);
+                categorized = true;
+            }
+            // Health & Beauty
+            else if (/shampoo|soap|toothpaste|vitamin|medicine/.test(name)) {
+                categories['Health & Beauty'].push(product);
+                categorized = true;
+            }
+            // Household
+            else if (/detergent|cleaner|paper|tissue|toilet/.test(name)) {
+                categories['Household'].push(product);
+                categorized = true;
+            }
+
+            if (!categorized) {
+                categories['Other'].push(product);
+            }
+        });
+
+        // Remove empty categories
+        Object.keys(categories).forEach(key => {
+            if (categories[key].length === 0) {
+                delete categories[key];
+            }
+        });
+
+        return categories;
     }
 
     async deleteProduct(productName, retailer) {
@@ -686,6 +811,206 @@ class ModernShoppingApp {
 
     hideModal() {
         document.getElementById('modalOverlay').classList.add('hidden');
+    }
+
+    async showPriceHistory(productName, retailer) {
+        try {
+            const response = await this.makeAuthenticatedRequest(`/admin/price-history/${encodeURIComponent(productName)}/${encodeURIComponent(retailer)}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showPriceHistoryModal(data.history, productName, retailer);
+            } else {
+                this.showToast('No price history available', 'warning');
+            }
+        } catch (error) {
+            console.error('Error loading price history:', error);
+            this.showToast('Error loading price history', 'error');
+        }
+    }
+
+    showPriceHistoryModal(history, productName, retailer) {
+        const modal = document.getElementById('modalContent');
+        modal.innerHTML = `
+            <div style="padding: 2rem; max-width: 900px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0;">Price History: ${productName}</h2>
+                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <canvas id="priceChart" width="400" height="200"></canvas>
+                </div>
+                
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                <th style="text-align: left; padding: 0.5rem;">Date</th>
+                                <th style="text-align: left; padding: 0.5rem;">Price</th>
+                                <th style="text-align: left; padding: 0.5rem;">Was</th>
+                                <th style="text-align: left; padding: 0.5rem;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${history.map(record => `
+                                <tr style="border-bottom: 1px solid var(--color-gray-100);">
+                                    <td style="padding: 0.5rem;">${new Date(record.date_recorded).toLocaleDateString()}</td>
+                                    <td style="padding: 0.5rem;">$${record.price}</td>
+                                    <td style="padding: 0.5rem;">${record.was_price ? '$' + record.was_price : '-'}</td>
+                                    <td style="padding: 0.5rem;">${record.on_sale ? 'ON SALE' : 'Regular'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        this.showModal();
+        
+        // Create price chart
+        setTimeout(() => {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: history.map(record => new Date(record.date_recorded).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Price',
+                        data: history.map(record => record.price),
+                        borderColor: 'var(--color-primary)',
+                        backgroundColor: 'rgba(30, 123, 50, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${productName} - Price Trend`
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }, 100);
+    }
+
+    async addToFavorites(productName, retailer) {
+        try {
+            const response = await this.makeAuthenticatedRequest('/admin/favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_name: productName, retailer: retailer })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showToast(`Added "${productName}" to favorites`, 'success');
+            } else {
+                this.showToast(result.message || 'Failed to add to favorites', 'error');
+            }
+        } catch (error) {
+            console.error('Error adding to favorites:', error);
+            this.showToast('Error adding to favorites', 'error');
+        }
+    }
+
+    async viewFavorites() {
+        try {
+            const response = await this.makeAuthenticatedRequest('/admin/favorites');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showFavoritesModal(data.favorites);
+            } else {
+                this.showToast('Failed to load favorites', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+            this.showToast('Error loading favorites', 'error');
+        }
+    }
+
+    showFavoritesModal(favorites) {
+        const modal = document.getElementById('modalContent');
+        modal.innerHTML = `
+            <div style="padding: 2rem; max-width: 800px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0;">My Favorites (${favorites.length})</h2>
+                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+                
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    ${favorites.length > 0 ? `
+                        <div style="display: grid; gap: 0.75rem;">
+                            ${favorites.map(fav => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--color-gray-200);">
+                                    <div>
+                                        <div style="font-weight: 500; color: var(--text-primary);">${fav.product_name}</div>
+                                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                                            ${fav.retailer} • Added ${new Date(fav.created_at).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button onclick="app.showPriceHistory('${fav.product_name}', '${fav.retailer}')" 
+                                                style="padding: 0.5rem; background: var(--color-primary); color: white; border: none; border-radius: 0.25rem; cursor: pointer;">
+                                            History
+                                        </button>
+                                        <button onclick="app.removeFavorite(${fav.id})" 
+                                                style="padding: 0.5rem; background: var(--color-error); color: white; border: none; border-radius: 0.25rem; cursor: pointer;">
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            No favorites added yet. Add products to your favorites from the search results!
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+        
+        this.showModal();
+    }
+
+    async removeFavorite(favoriteId) {
+        if (!confirm('Remove this product from your favorites?')) {
+            return;
+        }
+
+        try {
+            const response = await this.makeAuthenticatedRequest(`/admin/favorites/${favoriteId}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showToast('Removed from favorites', 'success');
+                this.viewFavorites(); // Refresh the modal
+            } else {
+                this.showToast('Failed to remove favorite', 'error');
+            }
+        } catch (error) {
+            console.error('Error removing favorite:', error);
+            this.showToast('Error removing favorite', 'error');
+        }
     }
 
     showToast(message, type = 'success') {
