@@ -618,6 +618,124 @@ async def debug_database(request: Request):
             detail=f"Debug failed: {str(e)}"
         )
 
+@app.post("/admin/bulk-import-data")
+async def admin_bulk_import_data(request: Request, data: dict):
+    """Bulk import historical data preserving original dates (admin only)."""
+    if not require_admin_auth(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required"
+        )
+    
+    try:
+        from .utils.db_config import log_price_data, log_alternative_products
+        from datetime import datetime, date
+        
+        price_records = data.get('price_history', [])
+        alt_records = data.get('alternatives', [])
+        
+        successful_price = 0
+        failed_price = 0
+        successful_alt = 0
+        failed_alt = 0
+        
+        # Import price history records with original dates
+        for record in price_records:
+            try:
+                # Parse date
+                date_recorded = None
+                if record.get('date_recorded'):
+                    if isinstance(record['date_recorded'], str):
+                        date_recorded = datetime.strptime(record['date_recorded'], '%Y-%m-%d').date()
+                    else:
+                        date_recorded = record['date_recorded']
+                
+                success = log_price_data(
+                    product_name=record['product_name'],
+                    retailer=record['retailer'],
+                    price=record.get('price'),
+                    was_price=record.get('was_price'),
+                    on_sale=record.get('on_sale', False),
+                    url=record.get('url'),
+                    date_recorded=date_recorded
+                )
+                
+                if success:
+                    successful_price += 1
+                else:
+                    failed_price += 1
+                    
+            except Exception as e:
+                logger.error(f"Failed to import price record: {e}")
+                failed_price += 1
+        
+        # Import alternative records (smaller batch)
+        current_batch = []
+        batch_size = 50
+        
+        for record in alt_records:
+            current_batch.append(record)
+            
+            if len(current_batch) >= batch_size:
+                try:
+                    success = log_alternative_products(
+                        search_query=record.get('search_query', ''),
+                        retailer=record.get('retailer', 'woolworths'),
+                        alternatives=current_batch
+                    )
+                    if success:
+                        successful_alt += len(current_batch)
+                    else:
+                        failed_alt += len(current_batch)
+                except Exception as e:
+                    logger.error(f"Failed to import alternative batch: {e}")
+                    failed_alt += len(current_batch)
+                
+                current_batch = []
+        
+        # Process remaining alternatives
+        if current_batch:
+            try:
+                success = log_alternative_products(
+                    search_query='bulk_import',
+                    retailer='woolworths', 
+                    alternatives=current_batch
+                )
+                if success:
+                    successful_alt += len(current_batch)
+                else:
+                    failed_alt += len(current_batch)
+            except Exception as e:
+                logger.error(f"Failed to import final alternative batch: {e}")
+                failed_alt += len(current_batch)
+        
+        result = {
+            "success": True,
+            "message": f"Bulk import completed: {successful_price} price records, {successful_alt} alternatives imported",
+            "stats": {
+                "price_records": {
+                    "successful": successful_price,
+                    "failed": failed_price,
+                    "total": len(price_records)
+                },
+                "alternatives": {
+                    "successful": successful_alt,
+                    "failed": failed_alt,
+                    "total": len(alt_records)
+                }
+            }
+        }
+        
+        logger.info(f"Admin bulk import completed: {result['message']}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Admin bulk import error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Bulk import failed: {str(e)}"
+        )
+
 @app.post("/check", response_model=CheckItemsResponse)
 async def check_items(request_body: CheckItemsRequest, request: Request):
     """
