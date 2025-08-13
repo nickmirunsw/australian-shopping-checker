@@ -578,63 +578,106 @@ class ModernShoppingApp {
     }
 
     showProductsModal(products) {
-        // Categorize products
-        const categories = this.categorizeProducts(products);
+        // Store original products for search
+        this.allProducts = products;
         
         const modal = document.getElementById('modalContent');
         modal.innerHTML = `
             <div style="padding: 2rem; max-width: 900px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="margin: 0;">Tracked Products (${products.length})</h2>
-                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                    <h2 style="margin: 0; color: var(--text-primary);">Tracked Products (${products.length})</h2>
+                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
                 </div>
                 
-                <div style="max-height: 70vh; overflow-y: auto;">
-                    ${products.length > 0 ? `
-                        ${Object.entries(categories).map(([category, items]) => `
-                            <div style="margin-bottom: 2rem;">
-                                <h3 style="margin-bottom: 1rem; color: var(--color-primary); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                                    ${category} (${items.length})
-                                </h3>
-                                <div style="display: grid; gap: 0.5rem;">
-                                    ${items.map(product => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--color-gray-200);">
-                                            <div style="flex: 1;">
-                                                <div style="font-weight: 500; color: var(--text-primary); font-size: 0.9rem;">${product.product_name}</div>
-                                                <div style="font-size: 0.75rem; color: var(--text-secondary);">
-                                                    ${product.retailer} • ${product.record_count} records • 
-                                                    ${product.first_seen} to ${product.last_seen}
-                                                </div>
-                                            </div>
-                                            <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
-                                                <button onclick="app.showPriceHistory('${product.product_name}', '${product.retailer}')" 
-                                                        style="padding: 0.4rem 0.6rem; background: var(--color-primary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
-                                                    History
-                                                </button>
-                                                <button onclick="app.addToFavorites('${product.product_name}', '${product.retailer}')" 
-                                                        style="padding: 0.4rem 0.6rem; background: var(--color-secondary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
-                                                    ♥ Fav
-                                                </button>
-                                                <button onclick="app.deleteProduct('${product.product_name}', '${product.retailer}')" 
-                                                        style="padding: 0.4rem 0.6rem; background: var(--color-error); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        `).join('')}
-                    ` : `
-                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                            No products being tracked yet. Use the search feature to start tracking prices!
-                        </div>
-                    `}
+                <!-- Search Bar -->
+                <div style="margin-bottom: 1.5rem;">
+                    <input 
+                        type="text" 
+                        id="productSearch" 
+                        placeholder="Search tracked products..." 
+                        class="input"
+                        style="width: 100%; padding: 0.75rem; border: 1.5px solid var(--color-gray-300); border-radius: 0.5rem; font-size: 0.9rem;"
+                        oninput="app.filterProducts(this.value)"
+                    >
                 </div>
+                
+                <div id="productsContainer" style="max-height: 60vh; overflow-y: auto;"></div>
             </div>
         `;
         
         this.showModal();
+        this.renderProducts(products);
+        
+        // Focus search input
+        setTimeout(() => {
+            const searchInput = document.getElementById('productSearch');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }, 100);
+    }
+
+    filterProducts(searchTerm) {
+        if (!this.allProducts) return;
+        
+        const filtered = this.allProducts.filter(product => 
+            product.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.retailer.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        
+        this.renderProducts(filtered);
+    }
+
+    renderProducts(products) {
+        const container = document.getElementById('productsContainer');
+        if (!container) return;
+        
+        // Categorize products
+        const categories = this.categorizeProducts(products);
+        
+        container.innerHTML = products.length > 0 ? `
+            ${Object.entries(categories).map(([category, items]) => `
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--color-primary); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        ${category} (${items.length})
+                    </h3>
+                    <div style="display: grid; gap: 0.5rem;">
+                        ${items.map(product => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--color-gray-200);">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 500; color: var(--text-primary); font-size: 0.9rem;">${product.product_name}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                        ${product.retailer} • ${product.record_count} records • 
+                                        ${product.first_seen} to ${product.last_seen}
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                                    <button onclick="app.showPriceHistory('${product.product_name}', '${product.retailer}')" 
+                                            style="padding: 0.4rem 0.6rem; background: var(--color-primary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                        History
+                                    </button>
+                                    <button onclick="app.addToFavorites('${product.product_name}', '${product.retailer}')" 
+                                            style="padding: 0.4rem 0.6rem; background: var(--color-secondary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                        ♥ Fav
+                                    </button>
+                                    <button onclick="app.deleteProduct('${product.product_name}', '${product.retailer}')" 
+                                            style="padding: 0.4rem 0.6rem; background: var(--color-error); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        ` : `
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                ${this.allProducts && this.allProducts.length > 0 ? 
+                    'No products match your search.' : 
+                    'No products being tracked yet. Use the search feature to start tracking prices!'
+                }
+            </div>
+        `;
     }
 
     categorizeProducts(products) {
@@ -861,34 +904,41 @@ class ModernShoppingApp {
 
     showPriceHistoryModal(history, productName, retailer) {
         const modal = document.getElementById('modalContent');
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        
         modal.innerHTML = `
-            <div style="padding: 2rem; max-width: 900px;">
+            <div style="padding: 2rem; max-width: 1000px; width: 90vw;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="margin: 0;">Price History: ${productName}</h2>
-                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                    <h2 style="margin: 0; color: var(--text-primary);">Price History: ${productName}</h2>
+                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
                 </div>
                 
-                <div style="margin-bottom: 1.5rem;">
-                    <canvas id="priceChart" width="400" height="200"></canvas>
+                <div style="margin-bottom: 1.5rem; height: 400px; position: relative;">
+                    <canvas id="priceChart" style="width: 100%; height: 100%;"></canvas>
+                </div>
+                
+                <div id="salePrediction" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--color-gray-200);">
+                    <h3 style="margin: 0 0 0.5rem 0; color: var(--text-primary); font-size: 1rem;">Sale Prediction</h3>
+                    <div id="predictionContent">Loading prediction...</div>
                 </div>
                 
                 <div style="max-height: 300px; overflow-y: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--color-gray-200);">
-                                <th style="text-align: left; padding: 0.5rem;">Date</th>
-                                <th style="text-align: left; padding: 0.5rem;">Price</th>
-                                <th style="text-align: left; padding: 0.5rem;">Was</th>
-                                <th style="text-align: left; padding: 0.5rem;">Status</th>
+                                <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Date</th>
+                                <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Price</th>
+                                <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Was</th>
+                                <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${history.map(record => `
                                 <tr style="border-bottom: 1px solid var(--color-gray-100);">
-                                    <td style="padding: 0.5rem;">${new Date(record.date_recorded).toLocaleDateString()}</td>
-                                    <td style="padding: 0.5rem;">$${record.price}</td>
-                                    <td style="padding: 0.5rem;">${record.was_price ? '$' + record.was_price : '-'}</td>
-                                    <td style="padding: 0.5rem;">${record.on_sale ? 'ON SALE' : 'Regular'}</td>
+                                    <td style="padding: 0.5rem; color: var(--text-primary);">${new Date(record.date_recorded).toLocaleDateString()}</td>
+                                    <td style="padding: 0.5rem; color: var(--text-primary);">$${record.price}</td>
+                                    <td style="padding: 0.5rem; color: var(--text-primary);">${record.was_price ? '$' + record.was_price : '-'}</td>
+                                    <td style="padding: 0.5rem; color: var(--text-primary);">${record.on_sale ? 'ON SALE' : 'Regular'}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -899,36 +949,69 @@ class ModernShoppingApp {
         
         this.showModal();
         
+        // Load sale prediction
+        this.loadSalePrediction(productName, retailer);
+        
         // Create price chart
         setTimeout(() => {
             const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            // Get current CSS custom properties for theming
+            const primaryColor = isDarkMode ? '#2d8f47' : '#1e7b32';
+            const textColor = isDarkMode ? '#f0f6fc' : '#111827';
+            const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
+            
             new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: history.map(record => new Date(record.date_recorded).toLocaleDateString()),
                     datasets: [{
-                        label: 'Price',
-                        data: history.map(record => record.price),
-                        borderColor: 'var(--color-primary)',
-                        backgroundColor: 'rgba(30, 123, 50, 0.1)',
-                        tension: 0.1
+                        label: 'Price ($)',
+                        data: history.map(record => parseFloat(record.price)),
+                        borderColor: primaryColor,
+                        backgroundColor: isDarkMode ? 'rgba(45, 143, 71, 0.1)' : 'rgba(30, 123, 50, 0.1)',
+                        tension: 0.1,
+                        fill: true
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         title: {
                             display: true,
-                            text: `${productName} - Price Trend`
+                            text: `${productName} - Price Trend`,
+                            color: textColor,
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                color: textColor
+                            }
                         }
                     },
                     scales: {
+                        x: {
+                            ticks: {
+                                color: textColor
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        },
                         y: {
                             beginAtZero: false,
                             ticks: {
+                                color: textColor,
                                 callback: function(value) {
                                     return '$' + value.toFixed(2);
                                 }
+                            },
+                            grid: {
+                                color: gridColor
                             }
                         }
                     }
@@ -936,14 +1019,65 @@ class ModernShoppingApp {
             });
         }, 100);
     }
+    
+    async loadSalePrediction(productName, retailer) {
+        try {
+            const response = await fetch(`/sale-prediction/${encodeURIComponent(productName)}?retailer=${encodeURIComponent(retailer)}`);
+            const data = await response.json();
+            
+            const predictionContent = document.getElementById('predictionContent');
+            if (response.ok && data.prediction) {
+                const pred = data.prediction;
+                predictionContent.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <div>
+                            <strong style="color: var(--color-primary);">Next Sale Estimate:</strong> 
+                            ${pred.estimated_next_sale || 'No prediction available'}
+                        </div>
+                        <div>
+                            <strong style="color: var(--color-secondary);">Confidence:</strong> 
+                            ${pred.confidence ? Math.round(pred.confidence * 100) + '%' : 'Low'}
+                        </div>
+                        <div>
+                            <strong>Avg Sale Cycle:</strong> 
+                            ${pred.average_sale_cycle || 'N/A'} days
+                        </div>
+                    </div>
+                    ${pred.reasoning ? `<p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">${pred.reasoning}</p>` : ''}
+                `;
+            } else {
+                predictionContent.innerHTML = '<p style="color: var(--text-muted);">No prediction data available yet. More price history needed.</p>';
+            }
+        } catch (error) {
+            console.error('Error loading sale prediction:', error);
+            const predictionContent = document.getElementById('predictionContent');
+            predictionContent.innerHTML = '<p style="color: var(--color-error);">Failed to load prediction</p>';
+        }
+    }
 
     async addToFavorites(productName, retailer) {
+        if (!this.adminSessionToken) {
+            this.showToast('Please login as admin first', 'warning');
+            return;
+        }
+        
         try {
-            const response = await this.makeAuthenticatedRequest('/admin/favorites', {
+            const response = await fetch('/admin/favorites', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.adminSessionToken}`
+                },
                 body: JSON.stringify({ product_name: productName, retailer: retailer })
             });
+            
+            if (response.status === 401) {
+                this.adminSessionToken = null;
+                localStorage.removeItem('adminSessionToken');
+                this.updateAdminUI(false);
+                this.showToast('Admin session expired. Please log in again.', 'error');
+                return;
+            }
             
             const result = await response.json();
             
