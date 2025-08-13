@@ -1,0 +1,39 @@
+[project]
+name = "australian-supermarket-checker"
+version = "0.1.0"
+description = "Check grocery sales at Australian supermarkets"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.0",
+    "httpx>=0.25.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "uvicorn[standard]>=0.24.0",
+    "psycopg2-binary>=2.9.0",
+    "gunicorn>=21.0.0",
+]
+
+[project.scripts]
+sale-checker = "cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "responses>=0.23.0",
+    "pytest-asyncio>=0.21.0",
+]
+playwright = [
+    "playwright>=1.40.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v"
