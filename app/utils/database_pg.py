@@ -475,3 +475,11 @@ def get_database_stats() -> Dict[str, Any]:
                 'unique_products': 0
             }
         }
+
+# Auto-initialize database on import in production
+try:
+    if DATABASE_URL:  # Only try to init if we have a DATABASE_URL (production)
+        init_database()
+        logger.info("PostgreSQL database auto-initialized on startup")
+except Exception as e:
+    logger.warning(f"Could not auto-initialize PostgreSQL database: {e}")
