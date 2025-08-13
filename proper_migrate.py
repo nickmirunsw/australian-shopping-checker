@@ -97,10 +97,7 @@ def main():
     print(f"   3. Import all {len(alternatives)} alternative records")
     print(f"   4. Preserve your multi-day tracking data")
     
-    response = input("\nProceed? (y/N): ").strip().lower()
-    if response != 'y':
-        print("Migration cancelled.")
-        return False
+    print("\nProceeding with migration...")
     
     # Login to admin
     print("\n🔐 Logging in to admin...")
