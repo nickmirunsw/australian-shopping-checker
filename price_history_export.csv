@@ -1,0 +1,229 @@
+id,product_name,retailer,price,was_price,on_sale,date_recorded,url,created_at
+254,cheezels cheese box 125g,woolworths,2.8,3.5,1,2025-08-11,https://www.woolworths.com.au/shop/productdetails/660337/cheezels-cheese-box,2025-08-11 12:35:04
+255,kettle sweet potato chips sea salt 135g,woolworths,6.0,,0,2025-08-11,https://www.woolworths.com.au/shop/productdetails/514466/kettle-sweet-potato-chips-sea-salt,2025-08-11 12:35:05
+256,"musashi chocolate peanut crisp protein bar, 4pk, 240g",woolworths,16.0,,0,2025-08-11,https://www.woolworths.com.au/shop/productdetails/232102/musashi-chocolate-peanut-crisp-protein-bar-4pk-,2025-08-11 12:35:06
+257,sweet potato gold each,woolworths,1.96,,0,2025-08-11,https://www.woolworths.com.au/shop/productdetails/147071/sweet-potato-gold,2025-08-11 12:35:06
+461,j*st milk soy milk 1l,woolworths,1.85,2.8,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/552318/j-st-milk-soy-milk,2025-08-12 10:18:34
+757,macro free range diced chicken breast 500g,woolworths,10.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/160857/macro-free-range-chicken-schnitzel,2025-08-12 11:35:40
+758,macro grass fed australian lamb cutlets 200g - 400g,woolworths,9.75,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/286300/macro-grass-fed-australian-lamb-mince,2025-08-12 11:35:41
+759,macro grass fed beef chuck steak 380g - 800g,woolworths,15.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6001987/macro-grass-fed-beef-mince,2025-08-12 11:35:42
+760,macro grass fed beef rump steak 300g,woolworths,,10.0,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/901716/macro-grass-fed-4-beef-burgers-patties,2025-08-12 11:35:42
+761,macro organic carrots 750g,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/133475/macro-organic-dates,2025-08-12 11:35:43
+762,macro organic dark ground coffee 200g,woolworths,12.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/161519/macro-organic-australian-almond-meal,2025-08-12 11:35:44
+763,macro organic jasmine rice 750g,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/133475/macro-organic-dates,2025-08-12 11:35:44
+764,macro organic medium ground coffee 200g,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/331588/macro-organic-corn-chips-cheese,2025-08-12 11:35:45
+765,macro organic salted butter 250g,woolworths,7.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/763844/macro-organic-trail-mix,2025-08-12 11:35:45
+766,macro organic soy long life milk uht 1l,woolworths,12.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/826040/macro-organic-coconut-oil,2025-08-12 11:35:46
+767,macro organic sweet potato 500g,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/133475/macro-organic-dates,2025-08-12 11:35:46
+768,macro organic sweet potato each,woolworths,7.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/161598/macro-organic-lsa-with-probiotics,2025-08-12 11:35:47
+769,macro sweet potato chickpea chips 69g,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/281500/macro-sweet-potato-chickpea-chips,2025-08-12 11:35:48
+770,maggi gravy mix roast meat 27g,woolworths,1.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/257411/maggi-gravy-mix-roast-meat,2025-08-12 11:35:49
+771,mainland organic butter block 250g,woolworths,7.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/899791/mainland-organic-spreadable-butter-tub-spreadable-butter,2025-08-12 11:35:50
+772,mccain lamb cutlet & gravy frozen 320g,woolworths,6.0,7.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/146418/mccain-lamb-cutlet-gravy-frozen-null,2025-08-12 11:35:51
+773,mccain superfries steak cut 900g,woolworths,4.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/662933/mccain-superfries-straight-cut,2025-08-12 11:35:52
+774,melbourne cheese company persian fetta 250g,woolworths,8.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/31165/melbourne-cheese-company-persian-fetta,2025-08-12 11:35:52
+775,moira mac's pulled chicken breast 150g,woolworths,5.0,6.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/391746/moira-mac-s-portugese-chicken-breast-slices,2025-08-12 11:35:53
+776,moira mac's pulled chicken breast 250g,woolworths,5.0,6.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/391746/moira-mac-s-portugese-chicken-breast-slices,2025-08-12 11:35:54
+777,moira mac's smoked chicken breast 300g,woolworths,8.0,9.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/176001/moira-mac-s-classic-roasted-chicken-breast,2025-08-12 11:35:55
+778,"musashi chocolate peanut crisp protein bar, 4pk, 240g",woolworths,16.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/232102/musashi-chocolate-peanut-crisp-protein-bar-4pk-,2025-08-12 11:35:56
+779,"musashi crisp protein bar chocolate peanut, 60g",woolworths,4.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/153164/musashi-crisp-protein-bar-chocolate-peanut-,2025-08-12 11:35:57
+780,"musashi wafer protein bar chocolate, bcaas, 40g",woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/700014/musashi-wafer-protein-bar-vanilla-bcaas-,2025-08-12 11:35:57
+781,"musashi wafer protein bar vanilla, bcaas, 40g",woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/700014/musashi-wafer-protein-bar-vanilla-bcaas-,2025-08-12 11:35:58
+782,muscle nation pistachio protein bar 50g,woolworths,3.15,4.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6000599/muscle-nation-protein-bar-cheesecake-zesty-lemon,2025-08-12 11:35:59
+783,obap sweet potato noodles 100g,woolworths,2.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/626939/obap-sweet-potato-noodles,2025-08-12 11:36:00
+784,oc naturals shampoo coco repair 400ml,woolworths,3.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6768/oc-naturals-shampoo-normal-balance,2025-08-12 11:36:01
+785,oc naturals shampoo dry nourish 725ml,woolworths,6.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/759605/oc-naturals-conditioner-dry-nourish,2025-08-12 11:36:01
+786,oc naturals shampoo normal balance 400ml,woolworths,3.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6768/oc-naturals-shampoo-normal-balance,2025-08-12 11:36:02
+787,oc naturals shampoo normal balance 725ml,woolworths,3.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6768/oc-naturals-shampoo-normal-balance,2025-08-12 11:36:02
+788,ocean blue smoked salmon 100g,woolworths,7.0,9.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/345350/ocean-blue-smoked-salmon,2025-08-12 11:36:04
+789,organic carrots 500g,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/117381/macro-organic-carrots,2025-08-12 11:36:04
+790,pace farm 6 for everyone barn laid eggs 350g,woolworths,10.45,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6023772/pace-farm-12-for-everyone-barn-laid-jumbo-eggs,2025-08-12 11:36:05
+791,pantalica parmesan cheese 100g,woolworths,3.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/207794/pantalica-parmesan-cheese,2025-08-12 11:36:06
+792,perfect italiano parmesan cheese block 200g,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/360904/perfect-italiano-parmesan-cheese-shaved-parmesan,2025-08-12 11:36:07
+793,perfect italiano parmesan cheese grated 125g,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/360904/perfect-italiano-parmesan-cheese-shaved-parmesan,2025-08-12 11:36:08
+794,perfect italiano parmesan cheese shaved 125g,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/360904/perfect-italiano-parmesan-cheese-shaved-parmesan,2025-08-12 11:36:08
+795,plussum protein bar cookies & cream 60g,woolworths,2.0,4.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/320646/plussum-protein-bar-cookies-cream,2025-08-12 11:36:09
+796,primo chicken breast sliced 80g,woolworths,3.95,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/544762/primo-chicken-breast-sliced-thinly-sliced,2025-08-12 11:36:10
+797,quest nutrition protein cookies variety pack chocolate chip 12 x 59g,woolworths,79.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1112098499/quest-nutrition-protein-cookies-variety-pack-chocolate-chip-12-x-59g,2025-08-12 11:36:11
+798,quest protein cookie chocolate chip flavour 59g,woolworths,5.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/699825/quest-protein-cookie-chocolate-chip-flavour,2025-08-12 11:36:12
+799,quest protein cookie double chocolate chip flavour 59g,woolworths,5.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/699825/quest-protein-cookie-chocolate-chip-flavour,2025-08-12 11:36:12
+800,south cape danish style fetta 200g,woolworths,6.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/51344/south-cape-danish-style-fetta,2025-08-12 11:36:14
+801,sunrice basmati rice 1kg,woolworths,6.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/231636/sunrice-basmati-rice,2025-08-12 11:36:14
+802,sunrice rice jasmine 1kg,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/267557/sunrice-rice-jasmine,2025-08-12 11:36:15
+803,sunsilk shampoo longer & stronger 700ml,woolworths,9.45,13.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/463195/sunsilk-shampoo-longer-stronger,2025-08-12 11:36:16
+804,sunsilk shampoo soft & smooth 700ml,woolworths,9.45,13.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/463194/sunsilk-shampoo-soft-smooth,2025-08-12 11:36:17
+805,sweet potato gold each,woolworths,1.96,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/147071/sweet-potato-gold,2025-08-12 11:36:17
+806,tassal salmon for cooking 200g,woolworths,8.5,11.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/345337/tassal-salmon-for-cooking,2025-08-12 11:36:18
+807,tassal smoked salmon 150g,woolworths,21.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/847118/tassal-smoked-salmon,2025-08-12 11:36:19
+808,tassal smoked salmon 250g,woolworths,21.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/847118/tassal-smoked-salmon,2025-08-12 11:36:20
+809,the bare bird free range chicken thigh fillets 350g - 600g,woolworths,10.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/24594/the-bare-bird-free-range-chicken-thigh-fillets,2025-08-12 11:36:21
+810,the odd bunch carrots 1.5kg,woolworths,2.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/288440/the-odd-bunch-carrots,2025-08-12 11:36:22
+811,thins chips light & tangy 175g,woolworths,4.0,5.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/274326/thins-chips-light-tangy,2025-08-12 11:36:22
+812,thomas dux marinated danish fetta herb & garlic 300g,woolworths,6.1,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/457433/thomas-dux-marinated-danish-fetta-herb-garlic,2025-08-12 11:36:24
+813,thomas dux persian fetta cheese 180g,woolworths,4.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/94989/thomas-dux-persian-fetta-cheese,2025-08-12 11:36:24
+814,tresemme shampoo moisture rich 940ml,woolworths,18.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/200150/tresemme-shampoo-moisture-rich-with-vitamin-e-jojoba-oil,2025-08-12 11:36:25
+815,true protein bar cookies & cream 63g,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/143240/true-protein-bar-cookies-cream,2025-08-12 11:36:26
+816,true protein bar rich chocolate 63g,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/143196/true-protein-bar-rich-chocolate,2025-08-12 11:36:26
+817,uncle tobys original shredded wheat biscuits 16 pack,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/248207/uncle-tobys-le-snak-tasty-cheese-dip-crackers,2025-08-12 11:36:27
+818,vitasoy calci plus soy milk 1l,woolworths,3.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/42937/vitasoy-calci-plus-soy-long-life-milk-uht,2025-08-12 11:36:28
+819,vitasoy original soy long life milk uht 1l,woolworths,3.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/35617/vitasoy-original-soy-long-life-milk-uht,2025-08-12 11:36:29
+820,vitasoy so milky soy milk 1l,woolworths,2.85,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/216825/vitasoy-so-milky-soy-milk,2025-08-12 11:36:30
+821,vitasoy soy milky low sugar soy milk 1l,woolworths,2.85,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/216826/vitasoy-soy-milky-low-sugar-soy-milk,2025-08-12 11:36:31
+822,westgold butter salted 400g,woolworths,8.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/504590/westgold-butter-unsalted-unsalted,2025-08-12 11:36:32
+823,westgold butter unsalted 400g,woolworths,8.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/504590/westgold-butter-unsalted-unsalted,2025-08-12 11:36:32
+825,woolworths 12 extra large cage free eggs 700g,woolworths,35.1,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1121917165/slip-free-bellissima-extra-large,2025-08-12 11:36:35
+826,woolworths 12 large free range eggs 600g,woolworths,8.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/313898/manning-valley-12-large-free-range-eggs,2025-08-12 11:36:36
+827,woolworths 12 x-large free range eggs 700g,woolworths,6.6,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/224763/woolworths-12-x-large-free-range-eggs,2025-08-12 11:36:37
+828,woolworths 18 large cage free eggs 900g,woolworths,8.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/74593/woolworths-18-large-cage-free-eggs,2025-08-12 11:36:38
+829,woolworths australian grown carrots 1kg,woolworths,2.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/135369/woolworths-australian-grown-carrots,2025-08-12 11:36:39
+830,woolworths baby carrots 500g,woolworths,1.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/742824/woolworths-baby-carrots,2025-08-12 11:36:40
+831,woolworths banana chips 300g,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/726361/woolworths-banana-chips,2025-08-12 11:36:41
+832,woolworths banana loaf 550g,woolworths,5.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/921669/woolworths-banana-loaf,2025-08-12 11:36:42
+833,woolworths basmati rice 1kg,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/694550/woolworths-basmati-rice,2025-08-12 11:36:43
+834,woolworths basmati rice 2kg,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/694550/woolworths-basmati-rice,2025-08-12 11:36:43
+835,woolworths basmati rice 5kg,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/694550/woolworths-basmati-rice,2025-08-12 11:36:44
+836,woolworths beef bolar blade roast 900g - 2kg,woolworths,32.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/764567/woolworths-beef-bolar-blade-roast,2025-08-12 11:36:44
+837,woolworths beef chuck steak large 650g - 1.3kg,woolworths,14.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/675632/woolworths-beef-chuck-steak-medium,2025-08-12 11:36:45
+838,woolworths beef chuck steak medium 380g - 800g,woolworths,14.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/675632/woolworths-beef-chuck-steak-medium,2025-08-12 11:36:46
+839,woolworths beef family roast 600g - 2kg,woolworths,38.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/453086/woolworths-beef-family-roast,2025-08-12 11:36:47
+840,woolworths beef oyster blade steak 600g,woolworths,16.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/675479/woolworths-beef-oyster-blade-steak,2025-08-12 11:36:48
+841,woolworths beef porterhouse steak & butter 400g,woolworths,16.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/243050/woolworths-beef-porterhouse-steak-butter,2025-08-12 11:36:49
+842,woolworths beef rump steak 250g,woolworths,9.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/236846/woolworths-beef-rump-steak,2025-08-12 11:36:50
+843,woolworths beef scotch fillet steak 170g,woolworths,9.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/317293/woolworths-beef-scotch-fillet-steak,2025-08-12 11:36:51
+844,woolworths beef sizzle steak 400g,woolworths,13.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/686853/woolworths-beef-sizzle-steak,2025-08-12 11:36:51
+845,woolworths brown rice grain 1kg,woolworths,2.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/777630/woolworths-brown-rice-grain,2025-08-12 11:36:52
+846,woolworths carrots peas & corn 1kg,woolworths,5.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/768569/woolworths-carrots-peas-corn,2025-08-12 11:36:53
+847,woolworths chicken breast bites original 300g,woolworths,7.0,9.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/268718/woolworths-chicken-breast-bites-original,2025-08-12 11:36:54
+848,woolworths crumbed chicken breast tenders 1kg,woolworths,9.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/132260/woolworths-crumbed-chicken-breast-tenders,2025-08-12 11:36:55
+849,woolworths danish style fetta 200g,woolworths,3.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/452086/woolworths-danish-style-fetta,2025-08-12 11:36:56
+850,woolworths family size basmati rice 450g,woolworths,2.75,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/528193/woolworths-family-size-jasmine-rice,2025-08-12 11:36:57
+853,woolworths ground coffee espresso 250g,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/247957/woolworths-ground-coffee-espresso,2025-08-12 11:37:00
+854,woolworths jasmine rice 1kg,woolworths,3.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/601342/woolworths-jasmine-rice,2025-08-12 11:37:00
+855,woolworths jasmine rice 5kg,woolworths,3.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/601342/woolworths-jasmine-rice,2025-08-12 11:37:01
+856,woolworths julienne carrots 500g,woolworths,2.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/768562/woolworths-julienne-carrots,2025-08-12 11:37:02
+857,woolworths lamb cutlets 6 - 10 pieces 500g - 900g,woolworths,43.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/765046/woolworths-lamb-cutlets-6-10-pieces,2025-08-12 11:37:03
+858,woolworths lamb extra trim cutlets 8-9 pieces 250g - 600g,woolworths,33.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/764944/woolworths-lamb-extra-trim-cutlets-8-9-pieces,2025-08-12 11:37:04
+859,woolworths lamb leg roast half 750g - 1.6kg,woolworths,20.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/764968/woolworths-lamb-leg-roast-half,2025-08-12 11:37:04
+860,woolworths lamb shoulder roast 1.1kg - 1.7kg,woolworths,28.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/727929/woolworths-lamb-shoulder-roast,2025-08-12 11:37:05
+861,woolworths light milk 2l,woolworths,3.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/888139/woolworths-lite-milk,2025-08-12 11:37:06
+862,woolworths lower carb potatoes 1.5kg,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/307538/woolworths-lower-carb-potatoes,2025-08-12 11:37:07
+863,woolworths microwave basmati rice 250g,woolworths,1.75,3.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/267561/sunrice-microwave-basmati-rice-indian-basmati-rice,2025-08-12 11:37:08
+864,woolworths microwave brown rice 250g,woolworths,1.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/360351/woolworths-microwave-brown-rice,2025-08-12 11:37:09
+865,woolworths organic milk 2l,woolworths,,6.4,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/154465/norco-organic-milk,2025-08-12 11:37:10
+866,woolworths original salted corn chips 175g,woolworths,2.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/340997/woolworths-original-salted-corn-chips,2025-08-12 11:37:11
+867,woolworths parmesan cheese block 200g,woolworths,6.5,7.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/807868/perfect-italiano-parmesan-cheese-block,2025-08-12 11:37:12
+868,woolworths pork leg mini roast 500g - 800g,woolworths,14.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6001486/woolworths-pork-leg-mini-roast,2025-08-12 11:37:13
+869,woolworths rspca approved chicken breast diced 1kg,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:14
+870,woolworths rspca approved chicken drumsticks 2kg,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:14
+871,woolworths rspca approved chicken hearts 500g,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:15
+872,woolworths rspca approved chicken mince 1kg,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:15
+873,woolworths rspca approved chicken stirfry 500g,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:16
+874,woolworths rspca approved chicken tenderloins 600g,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:16
+875,woolworths rspca approved chicken thigh cutlets 450g - 700g,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:17
+876,woolworths rspca approved chicken thigh cutlets per kg,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:17
+877,woolworths rspca approved chicken thigh fillet per kg,woolworths,4.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/23208/woolworths-rspca-approved-chicken-drumsticks,2025-08-12 11:37:18
+878,woolworths salmon in springwater 95g,woolworths,1.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/693763/woolworths-salmon-in-springwater,2025-08-12 11:37:19
+879,woolworths salmon naturally smoked 95g,woolworths,1.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/693762/woolworths-salmon-naturally-smoked,2025-08-12 11:37:20
+880,woolworths salmon portions skin on 2 pack,woolworths,19.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/157054/woolworths-salmon-portions-skin-on,2025-08-12 11:37:21
+881,woolworths salmon portions skin on 4 pack,woolworths,19.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/157054/woolworths-salmon-portions-skin-on,2025-08-12 11:37:21
+882,woolworths shredded parmesan cheese 250g,woolworths,5.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/85587/woolworths-shredded-parmesan-cheese,2025-08-12 11:37:22
+883,woolworths skim milk 2l,woolworths,1.65,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/51379/woolworths-skim-milk,2025-08-12 11:37:23
+884,woolworths sour cream & onion stacked chips 160g,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/479502/pringles-sour-cream-onion-potato-chips,2025-08-12 11:37:24
+885,woolworths southern style buttermilk chicken thigh fillet burgers 350g,woolworths,9.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/134085/woolworths-southern-style-buttermilk-chicken-thigh-fillet-burgers,2025-08-12 11:37:25
+886,woolworths soy long life milk uht 1l,woolworths,1.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/779130/woolworths-soy-long-life-milk-uht,2025-08-12 11:37:26
+887,woolworths supreme cheese corn chips 175g,woolworths,2.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/340561/woolworths-supreme-cheese-corn-chips,2025-08-12 11:37:27
+888,woolworths sweet potato cottage pie 375g,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/388387/woolworths-sweet-potato-cottage-pie,2025-08-12 11:37:27
+889,woolworths sweet potato mash 475g,woolworths,7.1,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/674323/woolworths-sweet-potato-mash-null,2025-08-12 11:37:28
+890,woolworths tasty cheese block 1kg,woolworths,8.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/310237/woolworths-tasty-cheese-block,2025-08-12 11:37:29
+891,woolworths tasty cheese block 250g,woolworths,8.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/310237/woolworths-tasty-cheese-block,2025-08-12 11:37:29
+892,woolworths tasty cheese block 500g,woolworths,8.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/310237/woolworths-tasty-cheese-block,2025-08-12 11:37:30
+893,woolworths tasty cheese shredded 250g,woolworths,5.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/729025/woolworths-tasty-cheese-shredded,2025-08-12 11:37:30
+894,woolworths tasty cheese slices 250g,woolworths,8.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/310237/woolworths-tasty-cheese-block,2025-08-12 11:37:31
+895,woolworths tasty cheese slices 500g,woolworths,8.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/310237/woolworths-tasty-cheese-block,2025-08-12 11:37:31
+896,woolworths tasty shredded cheese 500g,woolworths,9.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/491820/hillview-tasty-shredded-cheese,2025-08-12 11:37:32
+897,woolworths wheat biscuits 1.12kg,woolworths,5.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/333314/woolworths-wheat-biscuits,2025-08-12 11:37:33
+898,woolworths whole baby carrots baby 410g,woolworths,1.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/218900/woolworths-whole-baby-carrots-baby,2025-08-12 11:37:34
+899,yarra valley persian fetta 180g,woolworths,11.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/640123/yarra-valley-persian-fetta-persian-fetta,2025-08-12 11:37:35
+900,yarra valley persian fetta 350g,woolworths,11.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/640123/yarra-valley-persian-fetta-persian-fetta,2025-08-12 11:37:35
+1310,kettle sweet potato chips sea salt 135g,woolworths,6.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/514466/kettle-sweet-potato-chips-sea-salt,2025-08-12 11:49:56
+1311,kraft grated parmesan cheese 125g,woolworths,9.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/35143/kraft-grated-parmesan-cheese-cannister,2025-08-12 11:49:56
+1312,lake macquarie 6 large free range eggs 350g,woolworths,10.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/101523/lake-macquarie-12-extra-large-free-range-eggs,2025-08-12 11:49:57
+1313,lamb leg roast 1.8kg - 2.8kg,woolworths,20.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/764968/woolworths-lamb-leg-roast-half,2025-08-12 11:49:58
+1314,life savers bananas 160g,woolworths,5.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/256597/life-savers-bananas,2025-08-12 11:49:59
+1315,lotus sweet potato flour 500g,woolworths,12.59,15.99,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1122404975/lotus-sweet-potato-flour-500g,2025-08-12 11:50:00
+1316,macro chicken mince free range 500g,woolworths,13.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/700279/macro-chicken-tenderloins-free-range,2025-08-12 11:50:01
+1317,macro chicken thigh fillets free range 450g - 550g,woolworths,13.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/700279/macro-chicken-tenderloins-free-range,2025-08-12 11:50:01
+1318,macro free range chicken stir fry 500g,woolworths,10.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/160857/macro-free-range-chicken-schnitzel,2025-08-12 11:50:02
+1319,macro free range chicken thigh fillet 800g - 1.1kg,woolworths,,11.55,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/792933/macro-free-range-chicken-v-wings,2025-08-12 11:50:03
+1328,woolworths blueberry muffins 4 pack,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/883001/woolworths-blueberry-muffins,2025-08-12 11:51:52
+1329,woolworths blueberry yoghurt pouch 70g,woolworths,0.8,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6010159/woolworths-blueberry-yoghurt-pouch-blueberry,2025-08-12 11:51:52
+1330,woolworths mini blueberry muffins 8 pack,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/883002/woolworths-mini-blueberry-muffins,2025-08-12 11:51:52
+1333,schwarzkopf live colour blueberry 75ml,woolworths,13.6,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1122718069/schwarzkopf-live-colour-blueberry-75ml,2025-08-12 11:51:52
+1336,woolworths frozen mango 1kg,woolworths,9.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/820796/woolworths-frozen-mango,2025-08-12 11:51:53
+1337,woolworths frozen mango 500g,woolworths,6.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/777911/woolworths-frozen-mango,2025-08-12 11:51:53
+1339,sun lolly mango 8 pack,woolworths,6.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/334187/sun-lolly-mango,2025-08-12 11:51:53
+1340,woolworths apple & mango juice 2l,woolworths,2.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/673135/woolworths-apple-mango-juice,2025-08-12 11:51:53
+1341,woolworths mango in mango jelly 4 pack,woolworths,2.3,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/526016/woolworths-mango-in-mango-jelly,2025-08-12 11:51:53
+1342,woolworths dried mango slices 130g,woolworths,4.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/815875/woolworths-dried-mango-slices,2025-08-12 11:51:53
+1344,creative gourmet frozen passion fruit pulp 400g,woolworths,4.5,6.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/680368/creative-gourmet-frozen-passion-fruit-pulp,2025-08-12 11:51:54
+1345,ninja blast portable blender passion fruit bc100pr,woolworths,78.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1120744941/ninja-blast-portable-blender-passion-fruit-bc100pr,2025-08-12 11:51:54
+1346,pals vodka peach passion fruit & soda cans 330ml x4 pack,woolworths,25.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/978822/pals-vodka-peach-passion-fruit-soda-cans,2025-08-12 11:51:54
+1347,pals vodka peach passion fruit & soda cans 330ml x12 case,woolworths,67.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/978823/pals-vodka-peach-passion-fruit-soda-cans,2025-08-12 11:51:54
+1371,woolworths full cream milk 3l,woolworths,4.65,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/888140/woolworths-full-cream-milk,2025-08-12 11:54:20
+1372,woolworths full cream milk 2l,woolworths,3.2,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/888137/woolworths-full-cream-milk,2025-08-12 11:54:21
+1373,woolworths full cream milk 1l,woolworths,1.65,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/50923/woolworths-full-cream-milk,2025-08-12 11:54:21
+1375,norco full cream milk 2l,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/44528/norco-full-cream-milk,2025-08-12 11:54:21
+1376,norco full cream milk 3l,woolworths,6.4,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/56591/norco-full-cream-milk,2025-08-12 11:54:21
+1377,norco full cream milk 1l,woolworths,2.75,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/316080/norco-full-cream-milk,2025-08-12 11:54:21
+1378,tip top burger thins bread bakery 6 pack,woolworths,3.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/66911/tip-top-burger-thins-bread-bakery,2025-08-12 12:00:44
+1379,tip top sandwich thins original bread bakery 6 pack,woolworths,3.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/603316/tip-top-sandwich-thins-original-bread-bakery,2025-08-12 12:00:44
+1380,tip top sandwich thins wholemeal bread bakery 6 pack,woolworths,3.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/603317/tip-top-sandwich-thins-wholemeal-bread-bakery,2025-08-12 12:00:44
+1381,tip top sandwich thins mixed grain bread bakery 6 pack,woolworths,3.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/296808/tip-top-sandwich-thins-mixed-grain-bread-bakery,2025-08-12 12:00:44
+1382,12pc quest 59g protein cookie healthy weight management snack chocolate chip,woolworths,75.6,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1103414721/12pc-quest-59g-protein-cookie-healthy-weight-management-snack-chocolate-chip,2025-08-12 12:01:03
+1383,12pc quest 59g protein cookie weight management diet snack double chocolate chip,woolworths,75.6,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1103414721/12pc-quest-59g-protein-cookie-healthy-weight-management-snack-chocolate-chip,2025-08-12 12:01:03
+1384,48-blade stainless steel meat tenderizer tool for steak pork chicken lamb,woolworths,25.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6021508/adesso-stainless-steel-sandwich-maker,2025-08-12 12:01:04
+1385,a2 milk full cream 3l,woolworths,4.65,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/888140/woolworths-full-cream-milk,2025-08-12 12:01:05
+1386,abe's bagels blueberry bagels 4 pack,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/270580/abe-s-bagels-natural-bagels,2025-08-12 12:01:06
+1387,alishaan super basmati rice 5kg,woolworths,16.0,32.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/102670/alishaan-super-basmati-rice,2025-08-12 12:01:07
+1388,ambre luxe blueberry bronzing foam 200ml,woolworths,29.95,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1122348317/ambre-luxe-blueberry-bronzing-foam-200ml,2025-08-12 12:01:07
+1389,bananas kids 5 pack,woolworths,3.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/106218/bananas-kids,2025-08-12 12:01:09
+1390,barbie blueberry splash lash swim goggles,woolworths,32.95,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1123582717/barbie-blueberry-splash-lash-swim-goggles,2025-08-12 12:01:09
+1391,bega tasty cheese block 500g,woolworths,6.0,7.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/40709/bega-tasty-cheese-block-cheese,2025-08-12 12:01:10
+1392,belvita breakfast biscuits honey & nut with chocolate chips 6 pack 300g,woolworths,2.25,4.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/786364/belvita-chocolate-breakfast-biscuits-6-pack,2025-08-12 12:01:13
+1393,belvita breakfast biscuits milk & cereals 6 pack 300g,woolworths,2.25,4.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/905452/belvita-breakfast-biscuits-milk-cereals-6-pack,2025-08-12 12:01:13
+1394,belvita choc hazelnut sandwich breakfast biscuits 5 pack 253g,woolworths,2.25,4.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/54839/belvita-choc-hazelnut-sandwich-breakfast-biscuits-5-pack,2025-08-12 12:01:14
+1395,belvita chocolate breakfast biscuits 6 pack 300g,woolworths,2.25,4.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/786364/belvita-chocolate-breakfast-biscuits-6-pack,2025-08-12 12:01:15
+1396,belvita strawberry yoghurt sandwich breakfast biscuits 5 pack 253g,woolworths,2.25,4.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/510428/belvita-strawberry-yoghurt-sandwich-breakfast-biscuits-5-pack,2025-08-12 12:01:15
+1397,bonsoy soy long life milk uht 1l,woolworths,4.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/56731/bonsoy-soy-long-life-milk-uht,2025-08-12 12:01:16
+1398,campos colombia ground coffee 250g,woolworths,39.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/129065/campos-colombia-coffee-beans,2025-08-12 12:01:17
+1399,campos superior ground coffee 250g,woolworths,21.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/128377/campos-superior-ground-coffee,2025-08-12 12:01:17
+1400,cavendish bananas each,woolworths,0.81,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/133211/cavendish-bananas,2025-08-12 12:01:18
+1401,cc's corn chips cheese & jalapeno 175g,woolworths,2.5,5.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/781061/cc-s-corn-chips-original,2025-08-12 12:01:19
+1402,cc's corn chips taco 175g,woolworths,2.5,5.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/781061/cc-s-corn-chips-original,2025-08-12 12:01:21
+1403,cc's corn chips tasty cheese 175g,woolworths,2.5,5.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/781061/cc-s-corn-chips-original,2025-08-12 12:01:22
+1404,cheezels cheese box 125g,woolworths,2.8,3.5,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/660337/cheezels-cheese-box,2025-08-12 12:01:22
+1405,chobani greek yogurt natural light 160g,woolworths,7.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/717518/chobani-greek-yogurt-natural-light-plain,2025-08-12 12:01:23
+1406,chobani greek yogurt natural light plain 907g,woolworths,7.9,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/717518/chobani-greek-yogurt-natural-light-plain,2025-08-12 12:01:23
+1407,chobani greek yogurt passion fruit 160g,woolworths,2.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/265568/chobani-greek-yogurt-natural-light,2025-08-12 12:01:24
+1408,chobani no sugar added greek yogurt mango passion fruit 150g,woolworths,2.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/272107/chobani-no-sugar-added-greek-yogurt-vanilla,2025-08-12 12:01:25
+1409,chobani no sugar added greek yogurt mango passion fruit 680g,woolworths,,6.8,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/267204/chobani-no-sugar-added-greek-yogurt-vanilla,2025-08-12 12:01:25
+1410,eat later cavendish bananas each,woolworths,0.81,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/157649/eat-later-cavendish-bananas,2025-08-12 12:01:55
+1411,eco-friendly collapsible cup blueberry,woolworths,29.95,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/1111332487/eco-friendly-collapsible-cup-blueberry,2025-08-12 12:02:02
+1412,elvive total repair 5 shampoo 340ml,woolworths,5.0,10.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6008645/elvive-total-repair-5-shampoo,2025-08-12 12:02:03
+1413,essentials parmesan cheese 100g,woolworths,2.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/325134/essentials-parmesan-cheese,2025-08-12 12:02:04
+1414,essentials salted butter 250g,woolworths,7.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/48650/essentials-salted-butter,2025-08-12 12:02:05
+1415,essentials salted butter 500g,woolworths,7.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/48650/essentials-salted-butter,2025-08-12 12:02:06
+1416,essentials unsalted butter 250g,woolworths,7.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/688962/essentials-unsalted-butter,2025-08-12 12:02:06
+1417,essentials unsalted butter 500g,woolworths,7.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/688962/essentials-unsalted-butter,2025-08-12 12:02:07
+1418,f mayer danish fetta cheese per kg,woolworths,19.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/19080/f-mayer-danish-fetta-cheese-cheese,2025-08-12 12:02:08
+1419,farmers union light greek yoghurt 1kg,woolworths,6.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/31547/farmers-union-greek-style-natural-yoghurt,2025-08-12 12:02:08
+1420,frisp mango crisps 15g,woolworths,3.7,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/841552/frisp-mango-crisps,2025-08-12 12:02:09
+1421,grenade protein bar white oreo 60g,woolworths,5.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6028961/grenade-protein-bar-white-oreo,2025-08-12 12:02:12
+1422,grenade salted caramel protein bar 60g,woolworths,5.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6027807/grenade-salted-caramel-protein-bar,2025-08-12 12:02:13
+1423,grinders crema ground coffee 1kg,woolworths,32.0,40.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/738617/grinders-crema-coffee-beans-coffee-beans,2025-08-12 12:02:13
+1424,grinders crema ground coffee 200g,woolworths,32.0,40.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/6023650/grinders-crema-ground-coffee,2025-08-12 12:02:14
+1425,harvest beef steak vegetables 425g,woolworths,4.3,5.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/34017/harvest-beef-steak-vegetables,2025-08-12 12:02:14
+1426,illy ground coffee espresso 250g,woolworths,18.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/188087/illy-ground-coffee-espresso,2025-08-12 12:02:15
+1427,ingham's frozen chicken breast tenders southern style 400g,woolworths,5.5,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/38728/ingham-s-frozen-chicken-breast-tenders-original,2025-08-12 12:02:16
+1428,k-roo kangaroo sizzle steak 400g,woolworths,13.0,15.0,1,2025-08-12,https://www.woolworths.com.au/shop/productdetails/887603/k-roo-kangaroo-fillet,2025-08-12 12:02:17
+1429,kettle potato chips chilli 165g,woolworths,6.0,,0,2025-08-12,https://www.woolworths.com.au/shop/productdetails/236822/kettle-sweet-chilli-sour-cream-potato-chips,2025-08-12 12:02:18

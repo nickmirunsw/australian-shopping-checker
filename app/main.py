@@ -529,6 +529,33 @@ async def daily_price_update(
             detail="Failed to run daily price update"
         )
 
+@app.post("/admin/init-database")
+async def admin_init_database(request: Request):
+    """Initialize the database with required tables (admin only)."""
+    if not require_admin_auth(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required"
+        )
+    
+    try:
+        # Import the initialization function
+        from .utils.db_config import init_database
+        
+        init_database()
+        
+        logger.info("Admin initialized database tables")
+        return {
+            "success": True, 
+            "message": "Database tables initialized successfully"
+        }
+    except Exception as e:
+        logger.error(f"Admin database initialization error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to initialize database: {str(e)}"
+        )
+
 @app.post("/check", response_model=CheckItemsResponse)
 async def check_items(request_body: CheckItemsRequest, request: Request):
     """
