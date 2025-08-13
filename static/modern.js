@@ -1122,11 +1122,30 @@ class ModernShoppingApp {
     }
 
     async viewFavorites() {
+        if (!this.adminSessionToken) {
+            this.showToast('Please login as admin first', 'warning');
+            return;
+        }
+
         try {
-            const response = await this.makeAuthenticatedRequest('/admin/favorites');
+            const response = await fetch('/admin/favorites', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.adminSessionToken}`
+                }
+            });
+
+            if (response.status === 401) {
+                this.adminSessionToken = null;
+                localStorage.removeItem('adminSessionToken');
+                this.updateAdminUI(false);
+                this.showToast('Admin session expired. Please log in again.', 'error');
+                return;
+            }
+
             const data = await response.json();
             
-            if (data.success) {
+            if (response.ok && data.success) {
                 this.showFavoritesModal(data.favorites);
             } else {
                 this.showToast('Failed to load favorites', 'error');

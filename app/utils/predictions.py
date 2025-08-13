@@ -1,239 +1,201 @@
 """
-Sale prediction algorithm based on historical price data.
+Sale prediction analysis for tracked products.
 """
 
 import logging
-from datetime import date, timedelta
-from typing import List, Dict, Any, Optional, Tuple
-from statistics import mean, median
-import re
+from typing import Dict, Any, Optional, List
+from datetime import datetime, timedelta
 from .db_config import get_price_history
+import statistics
 
 logger = logging.getLogger(__name__)
 
-
-class SalePredictor:
-    """Predicts future sale dates based on historical patterns."""
+def get_sale_prediction(product_name: str, retailer: str = "woolworths") -> Dict[str, Any]:
+    """
+    Generate sale prediction for a product based on historical data.
     
-    def __init__(self):
-        self.min_history_days = 14  # Need at least 2 weeks of data
-        self.min_sales_count = 2    # Need at least 2 sales to detect pattern
-    
-    def analyze_sale_patterns(self, history: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Analyze historical data to identify sale patterns.
+    Returns:
+        Dict with prediction data including confidence, next sale date, etc.
+    """
+    try:
+        # Get extended price history (1 year)
+        history = get_price_history(product_name, retailer, days_back=365)
         
-        Returns:
-            Dict with sale pattern analysis including frequency, duration, etc.
-        """
-        if len(history) < self.min_history_days:
-            return {
-                "has_pattern": False,
-                "reason": "Insufficient data",
-                "confidence": 0.0
-            }
-        
-        # Extract sale periods
-        sale_periods = self._extract_sale_periods(history)
-        
-        if len(sale_periods) < self.min_sales_count:
-            return {
-                "has_pattern": False,
-                "reason": "Not enough sales detected",
-                "confidence": 0.0,
-                "sale_count": len(sale_periods)
-            }
-        
-        # Calculate sale frequency (days between sales)
-        sale_intervals = []
-        for i in range(1, len(sale_periods)):
-            prev_end = sale_periods[i-1]['end_date']
-            current_start = sale_periods[i]['start_date']
-            interval = (current_start - prev_end).days
-            sale_intervals.append(interval)
-        
-        if not sale_intervals:
-            return {
-                "has_pattern": False,
-                "reason": "Cannot calculate intervals",
-                "confidence": 0.0
-            }
-        
-        # Calculate pattern statistics
-        avg_interval = mean(sale_intervals)
-        median_interval = median(sale_intervals)
-        
-        # Calculate sale durations
-        sale_durations = [
-            (period['end_date'] - period['start_date']).days + 1
-            for period in sale_periods
-        ]
-        avg_duration = mean(sale_durations)
-        
-        # Calculate confidence based on consistency
-        interval_variance = sum((x - avg_interval) ** 2 for x in sale_intervals) / len(sale_intervals)
-        interval_std = interval_variance ** 0.5
-        
-        # Lower variance = higher confidence
-        confidence = max(0.0, min(1.0, 1.0 - (interval_std / avg_interval)))
-        
-        return {
-            "has_pattern": True,
-            "sale_count": len(sale_periods),
-            "avg_interval_days": round(avg_interval, 1),
-            "median_interval_days": round(median_interval, 1),
-            "avg_duration_days": round(avg_duration, 1),
-            "confidence": round(confidence, 2),
-            "sale_periods": sale_periods,
-            "last_sale": sale_periods[-1] if sale_periods else None
-        }
-    
-    def _extract_sale_periods(self, history: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract continuous sale periods from price history."""
-        sale_periods = []
-        current_period = None
-        
-        for record in sorted(history, key=lambda x: x['date_recorded']):
-            record_date = self._parse_date(record['date_recorded'])
-            
-            if record['on_sale']:
-                if current_period is None:
-                    # Start new sale period
-                    current_period = {
-                        'start_date': record_date,
-                        'end_date': record_date,
-                        'sale_price': record['price'],
-                        'regular_price': record.get('was_price')
-                    }
-                else:
-                    # Extend current sale period
-                    current_period['end_date'] = record_date
-                    # Update to lowest sale price in period
-                    if record['price'] and (current_period['sale_price'] is None or 
-                                          record['price'] < current_period['sale_price']):
-                        current_period['sale_price'] = record['price']
-            else:
-                if current_period is not None:
-                    # End current sale period
-                    sale_periods.append(current_period)
-                    current_period = None
-        
-        # Don't forget the last period if it's still ongoing
-        if current_period is not None:
-            sale_periods.append(current_period)
-        
-        return sale_periods
-    
-    def _parse_date(self, date_str: str) -> date:
-        """Parse date string into date object."""
-        if isinstance(date_str, date):
-            return date_str
-        
-        # Handle common date formats
-        if isinstance(date_str, str):
-            # Try ISO format first
-            try:
-                return date.fromisoformat(date_str)
-            except ValueError:
-                pass
-        
-        # Default to today if parsing fails
-        return date.today()
-    
-    def predict_next_sale(self, product_name: str, retailer: str = "woolworths", 
-                         days_back: int = 60) -> Dict[str, Any]:
-        """
-        Predict the next sale for a product based on historical patterns.
-        
-        Args:
-            product_name: Product to analyze
-            retailer: Retailer to analyze
-            days_back: Days of history to analyze
-            
-        Returns:
-            Dict with prediction details
-        """
-        try:
-            # Get historical data
-            history = get_price_history(product_name, retailer, days_back)
-            
-            if not history:
-                return {
-                    "has_prediction": False,
-                    "reason": "No historical data found",
-                    "product_name": product_name,
-                    "retailer": retailer
-                }
-            
-            # Analyze patterns
-            pattern_analysis = self.analyze_sale_patterns(history)
-            
-            if not pattern_analysis["has_pattern"]:
-                return {
-                    "has_prediction": False,
-                    "reason": pattern_analysis.get("reason", "No pattern detected"),
-                    "product_name": product_name,
-                    "retailer": retailer,
-                    "analysis": pattern_analysis
-                }
-            
-            # Make prediction based on pattern
-            last_sale = pattern_analysis["last_sale"]
-            avg_interval = pattern_analysis["avg_interval_days"]
-            confidence = pattern_analysis["confidence"]
-            
-            if not last_sale:
-                return {
-                    "has_prediction": False,
-                    "reason": "No previous sales found",
-                    "analysis": pattern_analysis
-                }
-            
-            # Calculate predicted next sale date
-            last_sale_end = last_sale["end_date"]
-            predicted_date = last_sale_end + timedelta(days=int(avg_interval))
-            
-            # Calculate days until predicted sale
-            days_until = (predicted_date - date.today()).days
-            
-            # Estimate sale price based on historical sales
-            historical_sales = [p for p in pattern_analysis["sale_periods"] if p.get("sale_price")]
-            predicted_sale_price = None
-            predicted_regular_price = None
-            
-            if historical_sales:
-                sale_prices = [p["sale_price"] for p in historical_sales if p["sale_price"]]
-                regular_prices = [p["regular_price"] for p in historical_sales if p.get("regular_price")]
-                
-                if sale_prices:
-                    predicted_sale_price = round(mean(sale_prices), 2)
-                if regular_prices:
-                    predicted_regular_price = round(mean(regular_prices), 2)
-            
-            return {
-                "has_prediction": True,
-                "predicted_sale_date": predicted_date.isoformat(),
-                "days_until_sale": days_until,
-                "confidence": confidence,
-                "predicted_sale_price": predicted_sale_price,
-                "predicted_regular_price": predicted_regular_price,
-                "estimated_savings": round(predicted_regular_price - predicted_sale_price, 2) if predicted_regular_price and predicted_sale_price else None,
-                "analysis": pattern_analysis,
-                "product_name": product_name,
-                "retailer": retailer
-            }
-            
-        except Exception as e:
-            logger.error(f"Error predicting sale for {product_name}: {e}")
+        if not history or len(history) < 7:
             return {
                 "has_prediction": False,
-                "reason": f"Prediction error: {str(e)}",
+                "reason": "Not enough historical data to predict sales (need at least 7 days of data).",
                 "product_name": product_name,
                 "retailer": retailer
             }
+        
+        # Analyze sale patterns
+        analysis = analyze_sale_patterns(history)
+        
+        if not analysis["has_sales"]:
+            return {
+                "has_prediction": False,
+                "reason": "No sales detected in historical data.",
+                "product_name": product_name,
+                "retailer": retailer,
+                "analysis": analysis
+            }
+        
+        # Generate prediction
+        prediction = generate_prediction(history, analysis)
+        
+        return {
+            "has_prediction": True,
+            "product_name": product_name,
+            "retailer": retailer,
+            "prediction": prediction,
+            "analysis": analysis,
+            **prediction  # Flatten prediction into main object for compatibility
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating sale prediction for {product_name}: {e}")
+        return {
+            "has_prediction": False,
+            "reason": f"Error analyzing data: {str(e)}",
+            "product_name": product_name,
+            "retailer": retailer
+        }
 
+def analyze_sale_patterns(history: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Analyze historical data to find sale patterns."""
+    try:
+        # Sort history by date
+        sorted_history = sorted(history, key=lambda x: x['date_recorded'])
+        
+        # Find sales (items with was_price or on_sale flag)
+        sales = []
+        regular_prices = []
+        
+        for record in sorted_history:
+            date_recorded = datetime.fromisoformat(record['date_recorded'].replace('Z', '+00:00'))
+            price = float(record['price'])
+            was_price = float(record['was_price']) if record.get('was_price') else None
+            on_sale = record.get('on_sale', False)
+            
+            if on_sale or was_price:
+                sales.append({
+                    'date': date_recorded,
+                    'price': price,
+                    'was_price': was_price,
+                    'savings': (was_price - price) if was_price else 0
+                })
+            else:
+                regular_prices.append(price)
+        
+        if not sales:
+            return {
+                "has_sales": False,
+                "sale_count": 0,
+                "avg_interval_days": 0,
+                "avg_sale_price": 0,
+                "avg_regular_price": statistics.mean(regular_prices) if regular_prices else 0
+            }
+        
+        # Calculate intervals between sales
+        intervals = []
+        if len(sales) > 1:
+            for i in range(1, len(sales)):
+                interval = (sales[i]['date'] - sales[i-1]['date']).days
+                if interval > 0:  # Avoid same-day duplicates
+                    intervals.append(interval)
+        
+        avg_interval = statistics.mean(intervals) if intervals else 30
+        avg_sale_price = statistics.mean([s['price'] for s in sales])
+        avg_regular_price = statistics.mean(regular_prices) if regular_prices else avg_sale_price * 1.2
+        avg_savings = statistics.mean([s['savings'] for s in sales if s['savings'] > 0])
+        
+        return {
+            "has_sales": True,
+            "sale_count": len(sales),
+            "avg_interval_days": round(avg_interval, 1),
+            "avg_sale_price": round(avg_sale_price, 2),
+            "avg_regular_price": round(avg_regular_price, 2),
+            "avg_savings": round(avg_savings, 2) if avg_savings else 0,
+            "last_sale_date": sales[-1]['date'].isoformat() if sales else None,
+            "intervals": intervals
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing sale patterns: {e}")
+        return {
+            "has_sales": False,
+            "sale_count": 0,
+            "avg_interval_days": 0,
+            "avg_sale_price": 0,
+            "avg_regular_price": 0
+        }
 
-def get_sale_prediction(product_name: str, retailer: str = "woolworths") -> Dict[str, Any]:
-    """Get sale prediction for a product (convenience function)."""
-    predictor = SalePredictor()
-    return predictor.predict_next_sale(product_name, retailer)
+def generate_prediction(history: List[Dict[str, Any]], analysis: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate sale prediction based on analysis."""
+    try:
+        if not analysis["has_sales"]:
+            return {
+                "confidence": 0.0,
+                "estimated_next_sale": "No prediction available",
+                "reasoning": "No sales detected in historical data"
+            }
+        
+        # Get last sale date
+        last_sale_str = analysis.get("last_sale_date")
+        if not last_sale_str:
+            return {
+                "confidence": 0.1,
+                "estimated_next_sale": "Unable to determine",
+                "reasoning": "Could not determine last sale date"
+            }
+        
+        last_sale_date = datetime.fromisoformat(last_sale_str.replace('Z', '+00:00'))
+        avg_interval = analysis["avg_interval_days"]
+        
+        # Predict next sale date
+        predicted_date = last_sale_date + timedelta(days=avg_interval)
+        days_until_sale = (predicted_date - datetime.now()).days
+        
+        # Calculate confidence based on data consistency
+        intervals = analysis.get("intervals", [])
+        if len(intervals) < 2:
+            confidence = 0.3
+            reasoning = f"Limited data: only {analysis['sale_count']} sales detected"
+        else:
+            # Higher confidence if intervals are consistent
+            std_dev = statistics.stdev(intervals) if len(intervals) > 1 else avg_interval
+            consistency = 1 - min(std_dev / avg_interval, 1) if avg_interval > 0 else 0
+            confidence = min(0.9, 0.4 + (consistency * 0.5))
+            reasoning = f"Based on {analysis['sale_count']} sales with average {avg_interval:.1f} day intervals"
+        
+        # Format prediction
+        if days_until_sale < 0:
+            estimated_next_sale = "Overdue (predicted sale has passed)"
+        elif days_until_sale == 0:
+            estimated_next_sale = "Today (predicted)"
+        elif days_until_sale == 1:
+            estimated_next_sale = "Tomorrow (predicted)"
+        elif days_until_sale <= 7:
+            estimated_next_sale = f"In {days_until_sale} days ({predicted_date.strftime('%b %d')})"
+        else:
+            estimated_next_sale = f"In {days_until_sale} days ({predicted_date.strftime('%b %d, %Y')})"
+        
+        return {
+            "confidence": round(confidence, 2),
+            "estimated_next_sale": estimated_next_sale,
+            "predicted_sale_date": predicted_date.isoformat(),
+            "days_until_sale": days_until_sale,
+            "predicted_sale_price": analysis["avg_sale_price"],
+            "estimated_savings": analysis.get("avg_savings", 0),
+            "average_sale_cycle": analysis["avg_interval_days"],
+            "reasoning": reasoning
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating prediction: {e}")
+        return {
+            "confidence": 0.0,
+            "estimated_next_sale": "Error generating prediction",
+            "reasoning": f"Prediction error: {str(e)}"
+        }
