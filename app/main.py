@@ -588,11 +588,27 @@ async def debug_database(request: Request):
             """)
             distinct_products = [dict(row) for row in cursor.fetchall()]
             
+            # Test the GROUP BY query that get_all_tracked_products uses
+            try:
+                cursor.execute("""
+                    SELECT DISTINCT product_name, retailer, 
+                           COUNT(*) as record_count,
+                           MIN(date_recorded) as first_seen,
+                           MAX(date_recorded) as last_seen
+                    FROM price_history 
+                    GROUP BY product_name, retailer
+                    ORDER BY last_seen DESC
+                """)
+                grouped_products = [dict(row) for row in cursor.fetchall()]
+            except Exception as e:
+                grouped_products = {"error": str(e)}
+            
             return {
                 "success": True,
                 "price_history_count": price_count,
                 "sample_records": sample_price_records,
-                "distinct_products": distinct_products
+                "distinct_products": distinct_products,
+                "grouped_products": grouped_products
             }
         
     except Exception as e:

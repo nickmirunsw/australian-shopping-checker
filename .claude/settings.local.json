@@ -13,7 +13,10 @@
       "WebFetch(domain:api.coles.com.au)",
       "Bash(rm:*)",
       "Bash(mv:*)",
-      "Bash(open http://127.0.0.1:8000/)"
+      "Bash(open http://127.0.0.1:8000/)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
