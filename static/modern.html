@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛒 Smart Shopping - Australian Price Tracker</title>
+    
+    <!-- Modern fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.js" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Custom modern styles -->
+    <link href="/static/modern.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i data-lucide="shopping-cart"></i>
+                <span class="brand-text">Smart Shopping</span>
+            </div>
+            
+            <div class="nav-actions">
+                <button id="themeToggle" class="nav-button" aria-label="Toggle theme">
+                    <i data-lucide="sun"></i>
+                </button>
+                <button id="adminToggleBtn" class="nav-button admin-btn">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+        
+        <!-- Shopping List Panel -->
+        <div class="panel shopping-panel">
+            <div class="panel-header">
+                <h2>Your Shopping List</h2>
+                <div class="panel-actions">
+                    <button id="clearListBtn" class="btn btn-ghost btn-sm">
+                        <i data-lucide="trash-2"></i>
+                        Clear All
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel-content">
+                <!-- Location Input -->
+                <div class="input-group">
+                    <label for="postcode" class="input-label">
+                        <i data-lucide="map-pin"></i>
+                        Location
+                    </label>
+                    <input 
+                        type="text" 
+                        id="postcode" 
+                        class="input" 
+                        value="2000" 
+                        placeholder="Enter postcode"
+                        maxlength="4"
+                    >
+                    <div class="input-hint">Australian postcode for local pricing</div>
+                </div>
+
+                <!-- Add Item Input -->
+                <div class="input-group">
+                    <label for="newItem" class="input-label">
+                        <i data-lucide="plus"></i>
+                        Add Item
+                    </label>
+                    <div class="add-item-container">
+                        <input 
+                            type="text" 
+                            id="newItem" 
+                            class="input" 
+                            placeholder="e.g., milk, bread, bananas..."
+                        >
+                        <button id="addItemBtn" class="btn btn-primary">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Add Buttons -->
+                <div class="quick-add-section">
+                    <div class="section-title">Quick Add</div>
+                    <div class="quick-add-grid">
+                        <button class="quick-add-btn" data-item="milk">🥛 Milk</button>
+                        <button class="quick-add-btn" data-item="bread">🍞 Bread</button>
+                        <button class="quick-add-btn" data-item="eggs">🥚 Eggs</button>
+                        <button class="quick-add-btn" data-item="bananas">🍌 Bananas</button>
+                        <button class="quick-add-btn" data-item="chicken">🍗 Chicken</button>
+                        <button class="quick-add-btn" data-item="rice">🍚 Rice</button>
+                    </div>
+                </div>
+
+                <!-- Items List -->
+                <div class="items-section">
+                    <div class="section-title">Items (<span id="itemCount">0</span>)</div>
+                    <ul id="itemsList" class="items-list"></ul>
+                </div>
+
+                <!-- Check Prices Button -->
+                <button id="checkPricesBtn" class="btn btn-primary btn-large">
+                    <i data-lucide="search"></i>
+                    Check Prices
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="panel results-panel">
+            <div class="panel-header">
+                <h2>Price Results</h2>
+                <div class="results-summary" id="resultsSummary"></div>
+            </div>
+            
+            <div class="panel-content">
+                <div id="loadingState" class="loading-state hidden">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Finding best prices...</div>
+                </div>
+
+                <div id="emptyState" class="empty-state">
+                    <i data-lucide="shopping-bag"></i>
+                    <h3>Ready to find great prices?</h3>
+                    <p>Add items to your shopping list and we'll find the best deals at Woolworths.</p>
+                </div>
+
+                <div id="resultsContainer" class="results-container hidden"></div>
+            </div>
+        </div>
+
+        <!-- Admin Panel (Mobile Responsive) -->
+        <div class="admin-panel">
+            <div class="panel-header">
+                <h2>Admin Dashboard</h2>
+                <button id="adminCloseBtn" class="btn btn-ghost btn-sm">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="panel-content">
+                <!-- Login Form -->
+                <div id="adminLoginForm" class="admin-login">
+                    <div class="input-group">
+                        <label for="adminUsername" class="input-label">Username</label>
+                        <input type="text" id="adminUsername" class="input" value="admin">
+                    </div>
+                    <div class="input-group">
+                        <label for="adminPassword" class="input-label">Password</label>
+                        <input type="password" id="adminPassword" class="input" value="password">
+                    </div>
+                    <button id="adminLoginBtn" class="btn btn-primary">Login</button>
+                </div>
+
+                <!-- Admin Controls -->
+                <div id="adminControls" class="admin-controls hidden">
+                    <div class="admin-grid">
+                        <button id="viewProductsBtn" class="admin-card">
+                            <i data-lucide="database"></i>
+                            <div>View Tracked Products</div>
+                        </button>
+                        
+                        <button id="generateDummyBtn" class="admin-card">
+                            <i data-lucide="plus-circle"></i>
+                            <div>Generate Test Data</div>
+                        </button>
+                        
+                        <button id="clearDatabaseBtn" class="admin-card danger">
+                            <i data-lucide="trash"></i>
+                            <div>Clear Database</div>
+                        </button>
+                        
+                        <button id="dailyUpdateBtn" class="admin-card">
+                            <i data-lucide="refresh-cw"></i>
+                            <div>Update Prices</div>
+                        </button>
+                    </div>
+
+                    <!-- Database Stats -->
+                    <div class="stats-section">
+                        <div class="section-title">Database Statistics</div>
+                        <div id="databaseStats" class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">-</div>
+                                <div class="stat-label">Products Tracked</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">-</div>
+                                <div class="stat-label">Price Records</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">-</div>
+                                <div class="stat-label">Days of Data</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay hidden">
+        <div id="modalContent" class="modal-content"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/modern.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

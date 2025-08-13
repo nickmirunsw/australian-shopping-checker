@@ -111,7 +111,7 @@ async def startup_event():
 @app.get("/")
 async def serve_frontend():
     """Serve the main web interface."""
-    return FileResponse("static/index.html")
+    return FileResponse("static/modern.html")
 
 @app.get("/health")
 async def health_check():
