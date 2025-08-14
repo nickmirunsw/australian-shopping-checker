@@ -89,9 +89,11 @@ class DailyPriceUpdater:
                             progress_callback(global_index, len(products_to_process), product_name, batch_num + 1, total_batches)
                         
                         # Search for current price data
+                        logger.info(f"Updating product {global_index}/{len(products_to_process)}: {product_name}")
                         updated_data = await self._get_current_price_data(product_name, retailer)
                         
                         if updated_data:
+                            logger.info(f"Found price data for {product_name}: ${updated_data['price']}")
                             # Log the new price data
                             success = log_price_data(
                                 product_name=updated_data['product_name'],
@@ -114,7 +116,7 @@ class DailyPriceUpdater:
                         else:
                             failed_updates += 1
                             batch_failed += 1
-                            logger.warning(f"Could not find current price data for {product_name}")
+                            logger.warning(f"Could not find current price data for {product_name} (search term extraction or API search failed)")
                     
                     except Exception as e:
                         failed_updates += 1
@@ -200,8 +202,8 @@ class DailyPriceUpdater:
             matcher = get_product_matcher()
             best_match, score = matcher.find_best_match(product_name, products)
             
-            if not best_match or not score or score.total_score < 0.3:
-                logger.debug(f"No good match found for {product_name} (best score: {score.total_score if score else 0})")
+            if not best_match or not score or score.total_score < 0.2:  # Reduced threshold from 0.3 to 0.2
+                logger.warning(f"No good match found for {product_name} (best score: {score.total_score if score else 0}, search term: '{search_term}')")
                 return None
             
             # Return the updated price data
@@ -258,14 +260,14 @@ class DailyPriceUpdater:
                 continue
             filtered_words.append(word)
         
-        # Take the first few meaningful words
-        search_term = " ".join(filtered_words[:2]) if filtered_words else name
+        # Take the first few meaningful words (increased from 2 to 3)
+        search_term = " ".join(filtered_words[:3]) if filtered_words else name
         
-        # Fallback to first word if nothing meaningful found
+        # Fallback to first few words if nothing meaningful found
         if not search_term.strip():
-            search_term = words[0] if words else product_name
+            search_term = " ".join(words[:2]) if len(words) >= 2 else (words[0] if words else product_name)
         
-        logger.debug(f"Extracted search term '{search_term}' from '{product_name}'")
+        logger.info(f"Extracted search term '{search_term}' from '{product_name}'")
         return search_term.strip()
 
 

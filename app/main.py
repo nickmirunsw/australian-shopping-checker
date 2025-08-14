@@ -622,9 +622,11 @@ async def daily_price_update(
     try:
         from .utils.daily_updates import get_daily_updater
         
+        logger.info(f"Admin daily update request: batch_size={batch_size}, max_batches={max_batches}, quick_mode={quick_mode}")
+        
         updater = get_daily_updater()
         result = await updater.update_all_products(
-            batch_size=batch_size or 10,
+            batch_size=batch_size or 20,
             max_batches=max_batches
         )
         

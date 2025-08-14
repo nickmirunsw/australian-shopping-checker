@@ -516,28 +516,8 @@ class ModernShoppingApp {
     }
 
     setupAdminEventListeners() {
-        // Note: Logout button event listener is already set up in main setupEventListeners()
-        
-        // Setup admin control buttons
-        document.getElementById('viewProductsBtn')?.addEventListener('click', () => {
-            this.viewTrackedProducts();
-        });
-
-        document.getElementById('generateDummyBtn')?.addEventListener('click', () => {
-            this.generateDummyData();
-        });
-
-        document.getElementById('clearDatabaseBtn')?.addEventListener('click', () => {
-            this.clearDatabase();
-        });
-
-        document.getElementById('dailyUpdateBtn')?.addEventListener('click', () => {
-            this.runDailyUpdate();
-        });
-
-        document.getElementById('viewFavoritesBtn')?.addEventListener('click', () => {
-            this.viewFavorites();
-        });
+        // Note: Admin button event listeners are already set up in main setupEventListeners()
+        // This function is kept for any future admin-specific event handling
     }
 
     async makeAuthenticatedRequest(url, options = {}) {
