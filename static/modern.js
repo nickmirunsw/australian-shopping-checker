@@ -873,7 +873,9 @@ class ModernShoppingApp {
             );
             
             const updateType = useQuickMode ? 'Quick' : 'Full';
-            this.showToast(`Starting ${updateType} price update...`, 'success');
+            
+            // Show progress modal
+            this.showProgressModal(`${updateType} Price Update`, 'Initializing...');
             
             const response = await this.makeAuthenticatedRequest('/daily-price-update', {
                 method: 'POST',
@@ -890,21 +892,99 @@ class ModernShoppingApp {
             
             if (result.success) {
                 const stats = result.stats;
-                const message = `${updateType} update completed: ${stats.successful_updates}/${stats.products_processed} products updated (${stats.success_rate}% success)`;
-                this.showToast(message, 'success');
+                this.updateProgressComplete(stats, updateType);
                 this.refreshDatabaseStats();
-                
-                // Show detailed results
-                if (stats.failed_updates > 0) {
-                    this.showToast(`Note: ${stats.failed_updates} products failed to update`, 'warning');
-                }
             } else {
-                this.showToast(`${updateType} update failed: ${result.message}`, 'error');
+                this.updateProgressError(`${updateType} update failed: ${result.message}`);
             }
         } catch (error) {
             console.error('Error running daily update:', error);
-            this.showToast(error.message || 'Error running update', 'error');
+            this.updateProgressError(error.message || 'Error running update');
         }
+    }
+
+    showProgressModal(title, status) {
+        document.getElementById('progressTitle').textContent = title;
+        document.getElementById('progressStatus').textContent = status;
+        document.getElementById('progressText').textContent = '0%';
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('progressLogs').innerHTML = '';
+        document.getElementById('progressSummary').classList.add('hidden');
+        document.getElementById('progressCloseBtn').style.display = 'none';
+        document.getElementById('progressOverlay').classList.remove('hidden');
+        
+        this.addProgressLog('Starting update process...', 'info');
+    }
+
+    updateProgress(percent, status, logMessage = null, logType = 'info') {
+        document.getElementById('progressText').textContent = `${Math.round(percent)}%`;
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('progressStatus').textContent = status;
+        
+        if (logMessage) {
+            this.addProgressLog(logMessage, logType);
+        }
+    }
+
+    addProgressLog(message, type = 'info') {
+        const logsContainer = document.getElementById('progressLogs');
+        const logEntry = document.createElement('div');
+        logEntry.className = `progress-log-entry ${type}`;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        logEntry.innerHTML = `<span style="color: var(--text-muted);">[${timestamp}]</span> ${message}`;
+        
+        logsContainer.appendChild(logEntry);
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    }
+
+    updateProgressComplete(stats, updateType) {
+        this.updateProgress(100, 'Update completed!', `${updateType} update finished`, 'success');
+        
+        // Show summary
+        const summaryContainer = document.getElementById('progressSummary');
+        summaryContainer.innerHTML = `
+            <h4>Update Summary</h4>
+            <div class="progress-stats">
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.products_processed}</div>
+                    <div class="progress-stat-label">Processed</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.successful_updates}</div>
+                    <div class="progress-stat-label">Successful</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.failed_updates}</div>
+                    <div class="progress-stat-label">Failed</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.success_rate}%</div>
+                    <div class="progress-stat-label">Success Rate</div>
+                </div>
+            </div>
+            <p><strong>Batches:</strong> ${stats.batches_processed} batches of ${stats.batch_size} products each</p>
+            <p><strong>New Records:</strong> ${stats.new_records} price records added to database</p>
+            ${stats.failed_updates > 0 ? `<p style="color: var(--color-warning);"><strong>Note:</strong> ${stats.failed_updates} products could not be updated (search/matching issues)</p>` : ''}
+        `;
+        summaryContainer.classList.remove('hidden');
+        
+        // Show close button
+        document.getElementById('progressCloseBtn').style.display = 'block';
+        document.getElementById('progressCloseBtn').onclick = () => this.hideProgressModal();
+        
+        this.showToast(`Update completed: ${stats.successful_updates}/${stats.products_processed} products updated`, 'success');
+    }
+
+    updateProgressError(errorMessage) {
+        this.updateProgress(0, 'Update failed', errorMessage, 'error');
+        document.getElementById('progressCloseBtn').style.display = 'block';
+        document.getElementById('progressCloseBtn').onclick = () => this.hideProgressModal();
+        this.showToast('Update failed', 'error');
+    }
+
+    hideProgressModal() {
+        document.getElementById('progressOverlay').classList.add('hidden');
     }
 
     showModal() {

@@ -234,6 +234,27 @@
         <div id="modalContent" class="modal-content"></div>
     </div>
 
+    <!-- Progress Modal -->
+    <div id="progressOverlay" class="modal-overlay hidden">
+        <div id="progressModal" class="progress-modal">
+            <div class="progress-header">
+                <h3 id="progressTitle">Processing...</h3>
+                <button id="progressCloseBtn" class="btn btn-ghost btn-sm" style="display: none;">Close</button>
+            </div>
+            <div class="progress-body">
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div id="progressBar" class="progress-fill"></div>
+                    </div>
+                    <div id="progressText" class="progress-text">0%</div>
+                </div>
+                <div id="progressStatus" class="progress-status">Starting...</div>
+                <div id="progressLogs" class="progress-logs"></div>
+                <div id="progressSummary" class="progress-summary hidden"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="/static/modern.js"></script>
     <script>
