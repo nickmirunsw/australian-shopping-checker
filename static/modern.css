@@ -203,6 +203,9 @@ body {
     grid-template-columns: 1fr;
     gap: var(--space-6);
     padding: var(--space-4);
+    /* Improve mobile scrolling */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
   
   .nav-container {
@@ -211,6 +214,19 @@ body {
   
   .brand-text {
     display: none;
+  }
+  
+  /* Make panels more mobile-friendly */
+  .panel {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better mobile chart handling */
+  .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: var(--space-2);
   }
 }
 
@@ -751,8 +767,9 @@ body {
 
 [data-theme="dark"] .admin-card {
   background: var(--dark-bg-secondary);
-  border-color: var(--color-gray-700);
+  border-color: var(--color-gray-600);
   color: var(--dark-text-primary);
+  border-width: 1.5px;
 }
 
 .admin-card:hover {
@@ -1011,24 +1028,71 @@ body {
 }
 
 @media (max-width: 480px) {
+  /* Fix mobile layout issues */
+  body {
+    overflow-x: hidden;
+  }
+  
+  .app-container {
+    overflow-x: hidden;
+    width: 100%;
+    padding: var(--space-2);
+  }
+  
   .alternative-item {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-2);
+    overflow-x: auto;
   }
   
   .alternative-price {
     text-align: left;
     align-self: flex-end;
+    width: 100%;
+  }
+  
+  .alternative-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
   
   .toast-container {
-    left: var(--space-4);
-    right: var(--space-4);
+    left: var(--space-2);
+    right: var(--space-2);
+    top: var(--space-2);
   }
   
   .toast {
     min-width: auto;
+  }
+  
+  /* Better mobile graph handling */
+  .modal-content {
+    max-width: 98vw;
+    max-height: 98vh;
+    margin: var(--space-1);
+    padding: var(--space-2) !important;
+  }
+  
+  /* Make charts responsive on mobile */
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Improve table scrolling on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix horizontal scrolling for price history tables */
+  .modal-content table {
+    min-width: 100%;
+    width: auto;
   }
 }
 

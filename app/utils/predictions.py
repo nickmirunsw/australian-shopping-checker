@@ -186,8 +186,16 @@ def generate_prediction(history: List[Dict[str, Any]], analysis: Dict[str, Any])
         avg_interval = analysis["avg_interval_days"]
         
         # Predict next sale date
+        now = datetime.now()
         predicted_date = last_sale_date + timedelta(days=avg_interval)
-        days_until_sale = (predicted_date - datetime.now()).days
+        days_until_sale = (predicted_date - now).days
+        
+        # If prediction is in the past, project forward using the cycle
+        if days_until_sale < 0:
+            # Calculate how many cycles have passed since the prediction
+            cycles_passed = abs(days_until_sale) // avg_interval + 1
+            predicted_date = predicted_date + timedelta(days=cycles_passed * avg_interval)
+            days_until_sale = (predicted_date - now).days
         
         # Calculate confidence based on data consistency
         intervals = analysis.get("intervals", [])

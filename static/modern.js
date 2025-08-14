@@ -516,10 +516,7 @@ class ModernShoppingApp {
     }
 
     setupAdminEventListeners() {
-        // Setup logout button event listener (called after login)
-        document.getElementById('adminLogoutBtn')?.addEventListener('click', () => {
-            this.performAdminLogout();
-        });
+        // Note: Logout button event listener is already set up in main setupEventListeners()
         
         // Setup admin control buttons
         document.getElementById('viewProductsBtn')?.addEventListener('click', () => {
@@ -887,19 +884,42 @@ class ModernShoppingApp {
 
     async runDailyUpdate() {
         try {
-            this.showToast('Running daily price update...', 'success');
+            // Ask user for update type
+            const useQuickMode = confirm(
+                'Choose update mode:\n\n' +
+                'OK = Quick Update (up to 100 products, ~2-3 minutes)\n' +
+                'Cancel = Full Update (all products, may take 10+ minutes)\n\n' +
+                'Recommendation: Use Quick Update during business hours.'
+            );
+            
+            const updateType = useQuickMode ? 'Quick' : 'Full';
+            this.showToast(`Starting ${updateType} price update...`, 'success');
             
             const response = await this.makeAuthenticatedRequest('/daily-price-update', {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    quick_mode: useQuickMode,
+                    batch_size: useQuickMode ? 20 : 25  // Slightly larger batches for full updates
+                })
             });
             
             const result = await response.json();
             
             if (result.success) {
-                this.showToast('Daily update completed successfully', 'success');
+                const stats = result.stats;
+                const message = `${updateType} update completed: ${stats.successful_updates}/${stats.products_processed} products updated (${stats.success_rate}% success)`;
+                this.showToast(message, 'success');
                 this.refreshDatabaseStats();
+                
+                // Show detailed results
+                if (stats.failed_updates > 0) {
+                    this.showToast(`Note: ${stats.failed_updates} products failed to update`, 'warning');
+                }
             } else {
-                this.showToast('Daily update failed', 'error');
+                this.showToast(`${updateType} update failed: ${result.message}`, 'error');
             }
         } catch (error) {
             console.error('Error running daily update:', error);
@@ -943,7 +963,7 @@ class ModernShoppingApp {
                     <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
                 </div>
                 
-                <div style="margin-bottom: 1.5rem; height: 400px; position: relative;">
+                <div style="margin-bottom: 1.5rem; height: 300px; position: relative; overflow: hidden;">
                     <canvas id="priceChart" style="width: 100%; height: 100%;"></canvas>
                 </div>
                 
@@ -1007,6 +1027,10 @@ class ModernShoppingApp {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
                     plugins: {
                         title: {
                             display: true,
@@ -1026,7 +1050,9 @@ class ModernShoppingApp {
                     scales: {
                         x: {
                             ticks: {
-                                color: textColor
+                                color: textColor,
+                                maxRotation: 45,
+                                maxTicksLimit: 8
                             },
                             grid: {
                                 color: gridColor
@@ -1036,6 +1062,7 @@ class ModernShoppingApp {
                             beginAtZero: false,
                             ticks: {
                                 color: textColor,
+                                maxTicksLimit: 6,
                                 callback: function(value) {
                                     return '$' + value.toFixed(2);
                                 }

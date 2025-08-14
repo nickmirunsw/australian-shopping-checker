@@ -578,11 +578,15 @@ async def admin_batch_price_update(
             detail="Failed to run batch price update"
         )
 
+class DailyUpdateRequest(BaseModel):
+    batch_size: Optional[int] = 20
+    max_batches: Optional[int] = None
+    quick_mode: Optional[bool] = False
+
 @app.post("/daily-price-update")
 async def daily_price_update(
     request: Request,
-    batch_size: Optional[int] = 10,  # Smaller default for web interface
-    max_batches: Optional[int] = 5   # Limit batches for web interface to prevent timeouts
+    update_params: DailyUpdateRequest = DailyUpdateRequest()
 ):
     """Run daily price update for tracked products with batching (admin only)."""
     if not require_admin_auth(request):
@@ -591,6 +595,11 @@ async def daily_price_update(
             detail="Admin authentication required"
         )
     
+    # Extract parameters
+    batch_size = update_params.batch_size
+    max_batches = update_params.max_batches  
+    quick_mode = update_params.quick_mode
+    
     # Validate parameters
     if batch_size and (batch_size < 1 or batch_size > 100):
         raise HTTPException(
@@ -598,10 +607,15 @@ async def daily_price_update(
             detail="batch_size must be between 1 and 100"
         )
     
-    if max_batches and (max_batches < 1 or max_batches > 50):
+    # Apply quick mode limitations
+    if quick_mode:
+        max_batches = min(max_batches or 5, 5)  # Limit to 5 batches in quick mode
+        logger.info(f"Quick mode enabled: limiting to {max_batches} batches of {batch_size} products")
+    
+    if max_batches and (max_batches < 1 or max_batches > 200):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="max_batches must be between 1 and 50"
+            detail="max_batches must be between 1 and 200"
         )
     
     try:

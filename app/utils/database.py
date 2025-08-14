@@ -143,8 +143,17 @@ def log_alternative_products(
     
     try:
         normalized_query = normalize_product_name(search_query)
-        # Use UTC timezone for consistent date recording
-        record_date = date_recorded or datetime.now(timezone.utc).date()
+        # Use Australian timezone for accurate local date recording
+        try:
+            import zoneinfo
+            aus_tz = zoneinfo.ZoneInfo("Australia/Sydney")
+        except ImportError:
+            # Fallback for Python < 3.9
+            from datetime import timezone, timedelta
+            # Approximate Australian timezone (UTC+10/+11 depending on DST)
+            aus_tz = timezone(timedelta(hours=10))
+        
+        record_date = date_recorded or datetime.now(aus_tz).date()
         
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -215,8 +224,17 @@ def log_price_data(
     
     try:
         normalized_name = normalize_product_name(product_name)
-        # Use UTC timezone for consistent date recording
-        record_date = date_recorded or datetime.now(timezone.utc).date()
+        # Use Australian timezone for accurate local date recording
+        try:
+            import zoneinfo
+            aus_tz = zoneinfo.ZoneInfo("Australia/Sydney")
+        except ImportError:
+            # Fallback for Python < 3.9
+            from datetime import timezone, timedelta
+            # Approximate Australian timezone (UTC+10/+11 depending on DST)
+            aus_tz = timezone(timedelta(hours=10))
+        
+        record_date = date_recorded or datetime.now(aus_tz).date()
         
         with get_db_connection() as conn:
             cursor = conn.cursor()

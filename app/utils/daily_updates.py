@@ -121,8 +121,10 @@ class DailyPriceUpdater:
                         batch_failed += 1
                         logger.error(f"Error updating {product_name}: {e}")
                     
-                    # Small delay to be respectful to the API
-                    await asyncio.sleep(0.3)  # Reduced delay within batches
+                    # Dynamic delay to be respectful to the API
+                    # Shorter delay for successful requests, longer for failures
+                    delay = 0.2 if updated_data else 0.5
+                    await asyncio.sleep(delay)
                 
                 # Log batch completion
                 batch_success_rate = (batch_successful / len(batch_products)) * 100 if batch_products else 0
