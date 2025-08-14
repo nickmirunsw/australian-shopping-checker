@@ -184,10 +184,11 @@ class ModernShoppingApp {
 
         if (confirm('Clear all items from your shopping list?')) {
             this.items = [];
+            this.results = null; // Clear stored results
             this.updateItemsList();
             this.updateItemCount();
             this.updateCheckButton();
-            this.showEmptyState();
+            this.showEmptyState(); // This will hide results and show empty state
             this.showToast('Shopping list cleared', 'success');
         }
     }
