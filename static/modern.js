@@ -115,6 +115,10 @@ class ModernShoppingApp {
             this.testProgressModal();
         });
 
+        document.getElementById('debugUpdateBtn')?.addEventListener('click', () => {
+            this.debugDailyUpdate();
+        });
+
         // Modal close on overlay click
         document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
             if (e.target.id === 'modalOverlay') {
@@ -889,9 +893,10 @@ class ModernShoppingApp {
             this.addProgressLog(`Checking authentication...`, 'info');
             
             // Brief delay to show the modal is working
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             this.updateProgress(5, 'Sending request to server...', 'Request prepared, sending to backend', 'info');
             
+            // Start the update process
             const response = await this.makeAuthenticatedRequest('/daily-price-update', {
                 method: 'POST',
                 headers: {
@@ -904,6 +909,11 @@ class ModernShoppingApp {
             });
             
             this.updateProgress(90, 'Processing server response...', 'Received response from server', 'info');
+            
+            // Add a delay to simulate processing and let user see the progress
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            this.addProgressLog('Processing update results...', 'info');
+            
             const result = await response.json();
             
             if (result.success) {
@@ -914,7 +924,8 @@ class ModernShoppingApp {
                 this.updateProgressError(`${updateType} update failed: ${result.message}`);
             }
         } catch (error) {
-            console.error('Error running daily update:', error);
+            console.error('❌ Error running daily update:', error);
+            this.addProgressLog(`Error occurred: ${error.message}`, 'error');
             this.updateProgressError(error.message || 'Error running update');
         }
     }
@@ -1048,6 +1059,50 @@ class ModernShoppingApp {
                 }, 500);
             }
         }, 300);
+    }
+
+    // Debug function to test the exact daily update flow without actually updating
+    debugDailyUpdate() {
+        console.log('🐛 DEBUG: Testing daily update flow...');
+        
+        const useQuickMode = confirm('DEBUG MODE: Test Quick (OK) or Full (Cancel) update flow?');
+        const updateType = useQuickMode ? 'Quick' : 'Full';
+        
+        console.log('🐛 DEBUG: Starting modal...');
+        this.showProgressModal(`DEBUG ${updateType} Price Update`, 'Debugging update flow...');
+        this.addProgressLog(`DEBUG: Starting ${updateType} update simulation`, 'info');
+        
+        let progress = 0;
+        const steps = [
+            'Authenticating...',
+            'Fetching product list...',
+            'Processing batch 1 of 3...',
+            'Processing batch 2 of 3...',
+            'Processing batch 3 of 3...',
+            'Saving results...',
+            'Complete!'
+        ];
+        
+        const interval = setInterval(() => {
+            if (progress < steps.length) {
+                const percent = ((progress + 1) / steps.length) * 100;
+                this.updateProgress(percent, steps[progress], `DEBUG: ${steps[progress]}`, 'info');
+                progress++;
+            } else {
+                clearInterval(interval);
+                setTimeout(() => {
+                    this.updateProgressComplete({
+                        products_processed: 50,
+                        successful_updates: 42,
+                        failed_updates: 8,
+                        success_rate: 84,
+                        batches_processed: 3,
+                        batch_size: 17,
+                        new_records: 42
+                    }, 'DEBUG');
+                }, 500);
+            }
+        }, 1500);
     }
 
     showModal() {
