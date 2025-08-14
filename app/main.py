@@ -6,6 +6,7 @@ import logging
 import asyncio
 import time
 from typing import Optional
+from pydantic import BaseModel
 from .models import CheckItemsRequest, CheckItemsResponse, ItemCheckResult, AdminLoginRequest, AdminLoginResponse
 from .services.sale_checker import SaleChecker
 from .utils.validation import validate_check_request, ValidationError
