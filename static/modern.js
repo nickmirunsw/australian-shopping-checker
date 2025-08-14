@@ -111,6 +111,10 @@ class ModernShoppingApp {
             this.viewFavorites();
         });
 
+        document.getElementById('testProgressBtn')?.addEventListener('click', () => {
+            this.testProgressModal();
+        });
+
         // Modal close on overlay click
         document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
             if (e.target.id === 'modalOverlay') {
@@ -572,6 +576,10 @@ class ModernShoppingApp {
                 <div class="stat-label">Price Records</div>
             </div>
             <div class="stat-card">
+                <div class="stat-value" style="color: ${(priceHistory.todays_updates || 0) > 0 ? 'var(--color-success)' : 'var(--color-warning)'};">${priceHistory.todays_updates || 0}</div>
+                <div class="stat-label">Updated Today</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-value">${this.calculateDaysBetween(priceHistory.oldest_record, priceHistory.newest_record)}</div>
                 <div class="stat-label">Days of Data</div>
             </div>
@@ -874,8 +882,15 @@ class ModernShoppingApp {
             
             const updateType = useQuickMode ? 'Quick' : 'Full';
             
-            // Show progress modal
+            // Show progress modal IMMEDIATELY and test it works
+            console.log('🚀 Starting daily update:', updateType);
             this.showProgressModal(`${updateType} Price Update`, 'Initializing...');
+            this.addProgressLog(`Starting ${updateType} price update...`, 'info');
+            this.addProgressLog(`Checking authentication...`, 'info');
+            
+            // Brief delay to show the modal is working
+            await new Promise(resolve => setTimeout(resolve, 500));
+            this.updateProgress(5, 'Sending request to server...', 'Request prepared, sending to backend', 'info');
             
             const response = await this.makeAuthenticatedRequest('/daily-price-update', {
                 method: 'POST',
@@ -888,6 +903,7 @@ class ModernShoppingApp {
                 })
             });
             
+            this.updateProgress(90, 'Processing server response...', 'Received response from server', 'info');
             const result = await response.json();
             
             if (result.success) {
@@ -904,6 +920,16 @@ class ModernShoppingApp {
     }
 
     showProgressModal(title, status) {
+        console.log('📋 Showing progress modal:', title, status);
+        
+        // Make sure modal elements exist
+        const progressOverlay = document.getElementById('progressOverlay');
+        if (!progressOverlay) {
+            console.error('❌ Progress overlay not found!');
+            alert('Progress modal not found! Check browser console.');
+            return;
+        }
+        
         document.getElementById('progressTitle').textContent = title;
         document.getElementById('progressStatus').textContent = status;
         document.getElementById('progressText').textContent = '0%';
@@ -911,8 +937,18 @@ class ModernShoppingApp {
         document.getElementById('progressLogs').innerHTML = '';
         document.getElementById('progressSummary').classList.add('hidden');
         document.getElementById('progressCloseBtn').style.display = 'none';
-        document.getElementById('progressOverlay').classList.remove('hidden');
         
+        // Force modal to be visible with high z-index
+        progressOverlay.style.zIndex = '9999';
+        progressOverlay.style.display = 'flex';
+        progressOverlay.classList.remove('hidden');
+        
+        // Add a bright border for testing
+        const modal = document.getElementById('progressModal');
+        modal.style.border = '3px solid var(--color-primary)';
+        modal.style.boxShadow = '0 0 20px rgba(30, 123, 50, 0.3)';
+        
+        console.log('✅ Progress modal should be visible now');
         this.addProgressLog('Starting update process...', 'info');
     }
 
@@ -985,6 +1021,33 @@ class ModernShoppingApp {
 
     hideProgressModal() {
         document.getElementById('progressOverlay').classList.add('hidden');
+    }
+
+    // Test function to verify progress modal works
+    testProgressModal() {
+        console.log('🧪 Testing progress modal...');
+        this.showProgressModal('Test Progress Modal', 'This is a test to verify the modal works');
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            this.updateProgress(progress, `Testing progress: ${progress}%`, `Test log entry ${progress/10}`, 'info');
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    this.updateProgressComplete({
+                        products_processed: 10,
+                        successful_updates: 8,
+                        failed_updates: 2,
+                        success_rate: 80,
+                        batches_processed: 2,
+                        batch_size: 5,
+                        new_records: 8
+                    }, 'Test');
+                }, 500);
+            }
+        }, 300);
     }
 
     showModal() {

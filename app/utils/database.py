@@ -538,6 +538,10 @@ def get_database_stats() -> Dict[str, Any]:
             cursor.execute("SELECT MIN(date_recorded), MAX(date_recorded) FROM price_history")
             date_range = cursor.fetchone()
             
+            # Today's updates count  
+            cursor.execute("SELECT COUNT(DISTINCT product_name) FROM price_history WHERE date_recorded = date('now')")
+            todays_updates = cursor.fetchone()[0]
+            
             # Alternative products stats
             cursor.execute("SELECT COUNT(*) FROM alternative_products")
             total_alternatives = cursor.fetchone()[0]
@@ -554,7 +558,8 @@ def get_database_stats() -> Dict[str, Any]:
                     'unique_products': unique_products,
                     'unique_retailers': unique_retailers,
                     'oldest_record': date_range[0] if date_range and date_range[0] else None,
-                    'newest_record': date_range[1] if date_range and date_range[1] else None
+                    'newest_record': date_range[1] if date_range and date_range[1] else None,
+                    'todays_updates': todays_updates
                 },
                 'alternatives': {
                     'total_records': total_alternatives,
