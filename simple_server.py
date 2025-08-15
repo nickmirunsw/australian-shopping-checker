@@ -120,6 +120,16 @@ async def get_database_statistics():
         raise HTTPException(status_code=500, detail=f"Error getting database stats: {str(e)}")
 
 
+@app.get("/admin/database-stats")  
+async def get_admin_database_statistics():
+    """Get database statistics (admin endpoint - always fresh data)."""
+    try:
+        stats = get_database_stats()
+        return {"success": True, "stats": stats}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting admin database stats: {str(e)}")
+
+
 @app.delete("/clear-database")
 async def clear_database():
     """Clear all price history data from the database. WARNING: This is permanent!"""
@@ -169,6 +179,21 @@ async def run_quick_update():
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error running quick update: {str(e)}")
+
+
+@app.post("/daily-update-25")
+async def run_daily_update_25():
+    """
+    Daily update: Update 25 random products missing today's price data.
+    
+    Perfect for spreading updates throughout the day to gradually build database.
+    """
+    try:
+        updater = get_daily_updater()
+        result = await updater.daily_update_25()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running daily update: {str(e)}")
 
 
 @app.post("/daily-price-update")

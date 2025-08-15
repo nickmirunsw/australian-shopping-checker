@@ -583,7 +583,14 @@ class ModernShoppingApp {
 
     async refreshDatabaseStats() {
         try {
-            const response = await fetch('/database/stats');
+            // Use authenticated endpoint if admin is logged in, otherwise use public endpoint
+            let response;
+            if (this.adminSessionToken) {
+                response = await this.makeAuthenticatedRequest('/admin/database-stats');
+            } else {
+                response = await fetch('/database/stats');
+            }
+            
             const data = await response.json();
             
             if (response.ok) {
@@ -591,6 +598,16 @@ class ModernShoppingApp {
             }
         } catch (error) {
             console.error('Failed to refresh database stats:', error);
+            // Fallback to public endpoint if authenticated fails
+            try {
+                const fallbackResponse = await fetch('/database/stats');
+                const fallbackData = await fallbackResponse.json();
+                if (fallbackResponse.ok) {
+                    this.updateDatabaseStats(fallbackData.stats);
+                }
+            } catch (fallbackError) {
+                console.error('Fallback stats refresh also failed:', fallbackError);
+            }
         }
     }
 
@@ -910,15 +927,17 @@ class ModernShoppingApp {
 
     async runDailyUpdate() {
         try {
-            // Ask user for update type
-            const useQuickMode = confirm(
-                'Choose update mode:\n\n' +
-                'OK = Quick Update (up to 100 products, ~2-3 minutes)\n' +
-                'Cancel = Full Update (all products, may take 10+ minutes)\n\n' +
-                'Recommendation: Use Quick Update during business hours.'
+            // Simple confirmation for 25 random items update
+            const confirmed = confirm(
+                '📊 Daily Price Update\n\n' +
+                'This will update 25 random products missing today\'s price data.\n\n' +
+                'Perfect for spreading updates throughout the day to build your database.\n\n' +
+                'Continue?'
             );
             
-            const updateType = useQuickMode ? 'Quick' : 'Full';
+            if (!confirmed) return;
+            
+            const updateType = 'Daily';
             
             // Show progress modal IMMEDIATELY and test it works
             console.log('🚀 Starting daily update:', updateType);
@@ -930,16 +949,9 @@ class ModernShoppingApp {
             await new Promise(resolve => setTimeout(resolve, 1000));
             this.updateProgress(5, 'Sending request to server...', 'Request prepared, sending to backend', 'info');
             
-            // Start the update process
-            const response = await this.makeAuthenticatedRequest('/daily-price-update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    quick_mode: useQuickMode,
-                    batch_size: useQuickMode ? 20 : 25  // Slightly larger batches for full updates
-                })
+            // Start the daily update process (25 random items)
+            const response = await this.makeAuthenticatedRequest('/daily-update-25', {
+                method: 'POST'
             });
             
             this.updateProgress(90, 'Processing server response...', 'Received response from server', 'info');
@@ -1060,6 +1072,11 @@ class ModernShoppingApp {
         document.getElementById('progressCloseBtn').onclick = () => this.hideProgressModal();
         
         this.showToast(`Update completed: ${stats.successful_updates}/${stats.products_processed} products updated`, 'success');
+        
+        // Force refresh database stats after successful update
+        setTimeout(() => {
+            this.refreshDatabaseStats();
+        }, 1000);
     }
 
     updateProgressError(errorMessage) {
