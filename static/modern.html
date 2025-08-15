@@ -22,7 +22,7 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="nav-container">
-            <div class="nav-brand" onclick="window.location.href='/';" style="cursor: pointer;">
+            <div class="nav-brand" onclick="app.goToHomepage();" style="cursor: pointer;">
                 <i data-lucide="shopping-cart"></i>
                 <span class="brand-text">Smart Shopping</span>
             </div>
@@ -202,19 +202,9 @@
                             <div>My Favorites</div>
                         </button>
                         
-                        <button id="testProgressBtn" class="admin-card" style="background: var(--color-warning); color: white;">
-                            <i data-lucide="play-circle"></i>
-                            <div>Test Progress Modal</div>
-                        </button>
-                        
-                        <button id="smartUpdateBtn" class="admin-card" style="background: var(--color-success); color: white;">
+                        <button id="quickUpdateBtn" class="admin-card" style="background: var(--color-success); color: white;">
                             <i data-lucide="zap"></i>
-                            <div>Smart Update (100)</div>
-                        </button>
-                        
-                        <button id="debugUpdateBtn" class="admin-card" style="background: #3b82f6 !important; color: white !important;">
-                            <i data-lucide="bug"></i>
-                            <div>Debug Daily Update</div>
+                            <div>Quick Update (10)</div>
                         </button>
                     </div>
 

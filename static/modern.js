@@ -112,16 +112,8 @@ class ModernShoppingApp {
             this.viewFavorites();
         });
 
-        document.getElementById('testProgressBtn')?.addEventListener('click', () => {
-            this.testProgressModal();
-        });
-
-        document.getElementById('smartUpdateBtn')?.addEventListener('click', () => {
-            this.smartDailyUpdate();
-        });
-
-        document.getElementById('debugUpdateBtn')?.addEventListener('click', () => {
-            this.debugDailyUpdate();
+        document.getElementById('quickUpdateBtn')?.addEventListener('click', () => {
+            this.quickUpdate();
         });
 
         // Modal close on overlay click
@@ -657,6 +649,9 @@ class ModernShoppingApp {
         // Store original products for search
         this.allProducts = products;
         
+        // Use proper modal stack management
+        this.showModal('tracked-products', { products });
+        
         const modal = document.getElementById('modalContent');
         modal.innerHTML = `
             <div style="padding: 2rem; max-width: 900px;">
@@ -1123,125 +1118,6 @@ class ModernShoppingApp {
         document.getElementById('progressOverlay').classList.add('hidden');
     }
 
-    // Test function to verify progress modal works
-    testProgressModal() {
-        console.log('🧪 Testing progress modal...');
-        this.showProgressModal('Test Progress Modal', 'This is a test to verify the modal works');
-        
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            this.updateProgress(progress, `Testing progress: ${progress}%`, `Test log entry ${progress/10}`, 'info');
-            
-            if (progress >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    this.updateProgressComplete({
-                        products_processed: 10,
-                        successful_updates: 8,
-                        failed_updates: 2,
-                        success_rate: 80,
-                        batches_processed: 2,
-                        batch_size: 5,
-                        new_records: 8
-                    }, 'Test');
-                }, 500);
-            }
-        }, 300);
-    }
-
-    async smartDailyUpdate() {
-        // Show confirmation dialog
-        const confirmed = confirm('🎯 Smart Daily Update\n\nThis will update 100 random products missing today\'s price data.\n\nPerfect for gentle, distributed updates throughout the day.\n\nContinue?');
-        if (!confirmed) return;
-        
-        try {
-            this.showDailyUpdateProgress();
-            this.addProgressLog('🎯 Starting Smart Daily Update...', 'info');
-            this.addProgressLog('Selecting 100 products missing today\'s price data...', 'info');
-            
-            const response = await fetch('/smart-daily-update', {
-                method: 'POST'
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to start smart update');
-            }
-            
-            this.addProgressLog('Smart update request sent successfully', 'success');
-            this.addProgressLog('Processing gentle updates with API-friendly delays...', 'info');
-            
-            // Add a delay to simulate processing and let user see the progress
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            this.addProgressLog('Processing update results...', 'info');
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                const stats = result.stats;
-                this.updateProgressComplete(stats, 'Smart');
-                this.refreshDatabaseStats();
-            } else {
-                // Handle different types of failures
-                if (result.stats && result.stats.circuit_breaker_triggered) {
-                    this.updateProgressCircuitBreaker(result, 'Smart');
-                } else {
-                    this.updateProgressError(`Smart update failed: ${result.message}`);
-                }
-            }
-            
-        } catch (error) {
-            console.error('❌ Error running smart daily update:', error);
-            this.addProgressLog(`Error occurred: ${error.message}`, 'error');
-            this.updateProgressError(error.message || 'Error running smart update');
-            this.showToast('Smart update failed', 'error');
-        }
-    }
-
-    // Debug function to test the exact daily update flow without actually updating
-    debugDailyUpdate() {
-        console.log('🐛 DEBUG: Testing daily update flow...');
-        
-        const useQuickMode = confirm('DEBUG MODE: Test Quick (OK) or Full (Cancel) update flow?');
-        const updateType = useQuickMode ? 'Quick' : 'Full';
-        
-        console.log('🐛 DEBUG: Starting modal...');
-        this.showProgressModal(`DEBUG ${updateType} Price Update`, 'Debugging update flow...');
-        this.addProgressLog(`DEBUG: Starting ${updateType} update simulation`, 'info');
-        
-        let progress = 0;
-        const steps = [
-            'Authenticating...',
-            'Fetching product list...',
-            'Processing batch 1 of 3...',
-            'Processing batch 2 of 3...',
-            'Processing batch 3 of 3...',
-            'Saving results...',
-            'Complete!'
-        ];
-        
-        const interval = setInterval(() => {
-            if (progress < steps.length) {
-                const percent = ((progress + 1) / steps.length) * 100;
-                this.updateProgress(percent, steps[progress], `DEBUG: ${steps[progress]}`, 'info');
-                progress++;
-            } else {
-                clearInterval(interval);
-                setTimeout(() => {
-                    this.updateProgressComplete({
-                        products_processed: 50,
-                        successful_updates: 42,
-                        failed_updates: 8,
-                        success_rate: 84,
-                        batches_processed: 3,
-                        batch_size: 17,
-                        new_records: 42
-                    }, 'DEBUG');
-                }, 500);
-            }
-        }, 1500);
-    }
 
     showModal(modalType = 'generic', modalData = null) {
         // Store previous modal state if any
@@ -1323,6 +1199,9 @@ class ModernShoppingApp {
     }
 
     showPriceHistoryModal(history, productName, retailer) {
+        // Use proper modal stack management
+        this.showModal('price-history', { history, productName, retailer });
+        
         const modal = document.getElementById('modalContent');
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
         
@@ -1713,6 +1592,62 @@ class ModernShoppingApp {
                 toast.parentNode.removeChild(toast);
             }
         }, 3000);
+    }
+
+    goToHomepage() {
+        // Navigate to homepage without logging out admin
+        this.closeAdminPanel();
+        this.hideModal();
+        
+        // Clear any active search results but keep admin session
+        this.results = null;
+        this.updateResultsDisplay();
+        
+        // Reset to empty state without reloading page
+        document.getElementById('resultsContainer').classList.add('hidden');
+        document.getElementById('emptyState').classList.remove('hidden');
+        document.getElementById('resultsSummary').textContent = '';
+    }
+
+    async quickUpdate() {
+        // Quick update: 10 random products missing today's price data
+        const confirmed = confirm('⚡ Quick Update\n\nThis will update 10 random products missing today\'s price data.\n\nPerfect for quick price checks without overwhelming the API.\n\nContinue?');
+        if (!confirmed) return;
+        
+        try {
+            this.showDailyUpdateProgress();
+            this.addProgressLog('⚡ Starting Quick Update...', 'info');
+            this.addProgressLog('Selecting 10 products missing today\'s price data...', 'info');
+            
+            const response = await fetch('/quick-update', {
+                method: 'POST'
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to start quick update');
+            }
+            
+            const result = await response.json();
+            
+            this.addProgressLog(`✅ Quick update completed!`, 'success');
+            this.addProgressLog(`📊 Results: ${result.stats.successful_updates}/${result.stats.products_processed} products updated`, 'info');
+            
+            if (result.stats.success_rate) {
+                this.addProgressLog(`📈 Success rate: ${result.stats.success_rate}%`, 'info');
+            }
+            
+            // Show completion status
+            document.getElementById('progressCloseBtn').style.display = 'block';
+            document.getElementById('progressTitle').textContent = 'Quick Update Complete';
+            
+            this.refreshDatabaseStats();
+            
+        } catch (error) {
+            console.error('Quick update error:', error);
+            this.addProgressLog(`❌ Error: ${error.message}`, 'error');
+            document.getElementById('progressCloseBtn').style.display = 'block';
+        }
     }
 }
 

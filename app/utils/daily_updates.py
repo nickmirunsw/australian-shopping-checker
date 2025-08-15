@@ -415,6 +415,176 @@ class DailyPriceUpdater:
                 }
             }
     
+    async def quick_update(self, progress_callback=None) -> Dict[str, Any]:
+        """
+        Quick update: randomly select 10 products missing today's price data.
+        
+        This is a smaller, faster version of smart_daily_update for quick price checks.
+        
+        Args:
+            progress_callback: Optional callback function to report progress
+            
+        Returns:
+            Dict with update results and statistics
+        """
+        try:
+            # Reset consecutive failures counter for new update session
+            self.consecutive_failures = 0
+            
+            # Get products missing today's price data (limit to 10)
+            products_to_update = get_products_missing_todays_price(limit=10)
+            
+            if not products_to_update:
+                return {
+                    "success": True,
+                    "message": "All products have today's price data! 🎉",
+                    "stats": {
+                        "total_products_missing": 0,
+                        "products_processed": 0,
+                        "successful_updates": 0,
+                        "failed_updates": 0,
+                        "new_records": 0,
+                        "success_rate": 100.0,
+                        "update_type": "quick"
+                    }
+                }
+            
+            total_products = len(products_to_update)
+            successful_updates = 0
+            failed_updates = 0
+            new_records = 0
+            
+            logger.info(f"Starting quick update: {total_products} products missing today's price data")
+            
+            # Process products one by one
+            for i, product in enumerate(products_to_update):
+                product_name = product['product_name']
+                retailer = product['retailer']
+                current_index = i + 1
+                updated_data = None
+                
+                try:
+                    if progress_callback:
+                        progress_callback(current_index, total_products, product_name, 1, 1)
+                    
+                    # Search for current price data with timeout
+                    logger.info(f"Quick update {current_index}/{total_products}: {product_name}")
+                    
+                    try:
+                        updated_data = await asyncio.wait_for(
+                            self._get_current_price_data(product_name, retailer),
+                            timeout=30.0  # 30 second timeout per product
+                        )
+                    except asyncio.TimeoutError:
+                        logger.warning(f"Timeout while updating {product_name} - skipping")
+                        failed_updates += 1
+                        continue
+                    
+                    if updated_data:
+                        logger.info(f"Found price data for {product_name}: ${updated_data['price']}")
+                        
+                        # Reset consecutive failures on successful API call
+                        self.consecutive_failures = 0
+                        
+                        # Database operation with retry logic
+                        max_db_retries = 3
+                        db_success = False
+                        
+                        for retry in range(max_db_retries):
+                            try:
+                                success = log_price_data(
+                                    product_name=updated_data['product_name'],
+                                    retailer=updated_data['retailer'],
+                                    price=updated_data['price'],
+                                    was_price=updated_data.get('was_price'),
+                                    on_sale=updated_data.get('on_sale', False),
+                                    url=updated_data.get('url')
+                                )
+                                
+                                if success:
+                                    successful_updates += 1
+                                    new_records += 1
+                                    db_success = True
+                                    logger.debug(f"Updated price for {product_name}: ${updated_data['price']}")
+                                    break
+                                else:
+                                    logger.warning(f"Database insert failed for {product_name} (attempt {retry + 1})")
+                                    if retry < max_db_retries - 1:
+                                        await asyncio.sleep(1.0)  # Wait before retry
+                                    
+                            except Exception as db_error:
+                                logger.error(f"Database error for {product_name} (attempt {retry + 1}): {db_error}")
+                                if retry < max_db_retries - 1:
+                                    await asyncio.sleep(1.0)  # Wait before retry
+                        
+                        if not db_success:
+                            failed_updates += 1
+                            logger.error(f"Failed to log price data for {product_name} after {max_db_retries} attempts")
+                    else:
+                        failed_updates += 1
+                        self.consecutive_failures += 1
+                        logger.warning(f"Could not find current price data for {product_name}")
+                        
+                        # Quick update circuit breaker (very strict threshold)
+                        if self.consecutive_failures >= 3:  # Very low threshold for quick updates
+                            logger.warning(f"Quick update circuit breaker triggered: {self.consecutive_failures} consecutive failures. Stopping early.")
+                            break
+                
+                except Exception as e:
+                    failed_updates += 1
+                    self.consecutive_failures += 1
+                    logger.error(f"Unexpected error updating {product_name}: {e}")
+                    
+                    # Circuit breaker
+                    if self.consecutive_failures >= 3:
+                        logger.warning(f"Quick update circuit breaker triggered: {self.consecutive_failures} consecutive failures. Stopping early.")
+                        break
+                
+                # Shorter delay for quick updates
+                if updated_data:
+                    delay = 1.0  # 1 second delay for successful requests
+                else:
+                    delay = 0.5  # 0.5 second delay for failed requests
+                
+                await asyncio.sleep(delay)
+            
+            processed_products = successful_updates + failed_updates
+            success_rate = (successful_updates / processed_products) * 100 if processed_products > 0 else 0
+            
+            result = {
+                "success": True,
+                "message": f"Quick update completed: {successful_updates}/{processed_products} products updated ({success_rate:.1f}% success rate)",
+                "stats": {
+                    "total_products_missing": total_products,
+                    "products_processed": processed_products,
+                    "successful_updates": successful_updates,
+                    "failed_updates": failed_updates,
+                    "new_records": new_records,
+                    "success_rate": round(success_rate, 1),
+                    "update_type": "quick",
+                    "circuit_breaker_triggered": self.consecutive_failures >= 3
+                }
+            }
+            
+            logger.info(f"Quick update completed: {result['message']}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Quick update failed: {e}")
+            return {
+                "success": False,
+                "message": f"Quick update failed: {str(e)}",
+                "stats": {
+                    "total_products_missing": 0,
+                    "products_processed": 0,
+                    "successful_updates": 0,
+                    "failed_updates": 0,
+                    "new_records": 0,
+                    "success_rate": 0,
+                    "update_type": "quick"
+                }
+            }
+    
     async def _get_current_price_data(self, product_name: str, retailer: str) -> Dict[str, Any]:
         """
         Get current price data for a specific product.

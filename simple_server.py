@@ -156,6 +156,21 @@ async def run_smart_daily_update():
         raise HTTPException(status_code=500, detail=f"Error running smart daily update: {str(e)}")
 
 
+@app.post("/quick-update")
+async def run_quick_update():
+    """
+    Quick update: Update 10 random products missing today's price data.
+    
+    This is a smaller, faster alternative for quick price checks.
+    """
+    try:
+        updater = get_daily_updater()
+        result = await updater.quick_update()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running quick update: {str(e)}")
+
+
 @app.post("/daily-price-update")
 async def run_daily_price_update():
     """Update prices for all products currently tracked in the database."""
