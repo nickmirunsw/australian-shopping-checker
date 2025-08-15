@@ -36,7 +36,7 @@ except Exception:
 async def serve_frontend():
     """Serve the main web interface."""
     try:
-        return FileResponse("static/index.html")
+        return FileResponse("static/modern.html")
     except Exception:
         return {"message": "Australian Supermarket Sale Checker API", "status": "running"}
 
