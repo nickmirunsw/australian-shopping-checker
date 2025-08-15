@@ -4,7 +4,6 @@ from typing import Literal, Optional, List, Dict, Any
 
 class ProductResult(BaseModel):
     name: str
-    display_name: Optional[str] = None  # Clean name for display (without stockcode)
     price: Optional[float] = None
     was: Optional[float] = None
     promoText: Optional[str] = None
@@ -12,6 +11,7 @@ class ProductResult(BaseModel):
     url: Optional[str] = None
     inStock: Optional[bool] = None
     retailer: Literal["woolworths", "coles"]
+    display_name: Optional[str] = None  # Clean name for display (without stockcode)
     stockcode: Optional[str] = None  # Store stockcode for absolute uniqueness
 
 

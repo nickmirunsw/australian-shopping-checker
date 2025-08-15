@@ -87,12 +87,8 @@ class WoolworthsAdapter(BaseAdapter):
         if size_info and size_info.lower() not in raw_name.lower():
             name = f"{raw_name} {size_info}".strip()
         
-        # Add stockcode for absolute uniqueness (critical for preventing mixing)
+        # Get stockcode for reference but don't modify the name yet to avoid breaking existing functionality
         stockcode = product_data.get("Stockcode")
-        if stockcode:
-            # Include stockcode in internal name for absolute differentiation
-            # This ensures 60g and 140g versions are treated as completely different products
-            name = f"{name} [WOW:{stockcode}]"
         
         # Extract pricing using actual API field names
         price = product_data.get("Price")
@@ -123,7 +119,6 @@ class WoolworthsAdapter(BaseAdapter):
         
         return ProductResult(
             name=name,  # Internal name with stockcode for uniqueness
-            display_name=display_name,  # Clean name for display
             price=price,
             was=was,
             promoText=promo_text,
@@ -131,6 +126,7 @@ class WoolworthsAdapter(BaseAdapter):
             url=url,
             inStock=in_stock,
             retailer="woolworths",
+            display_name=display_name,  # Clean name for display
             stockcode=stockcode  # Store for reference
         )
     
