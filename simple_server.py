@@ -45,7 +45,7 @@ async def health_check():
     """Basic health check endpoint."""
     return {"status": "ok", "timestamp": time.time()}
 
-@app.post("/check", response_model=CheckItemsResponse)
+@app.post("/check-items", response_model=CheckItemsResponse)
 async def check_items(request_body: CheckItemsRequest):
     """
     Check if items are on sale at Australian supermarkets.

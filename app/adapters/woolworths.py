@@ -88,7 +88,7 @@ class WoolworthsAdapter(BaseAdapter):
             name = f"{raw_name} {size_info}".strip()
         
         # Get stockcode for reference but don't modify the name yet to avoid breaking existing functionality
-        stockcode = product_data.get("Stockcode")
+        stockcode = str(product_data.get("Stockcode")) if product_data.get("Stockcode") is not None else None
         
         # Extract pricing using actual API field names
         price = product_data.get("Price")
