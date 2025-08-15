@@ -594,7 +594,9 @@ class ModernShoppingApp {
             const data = await response.json();
             
             if (response.ok) {
-                this.updateDatabaseStats(data.stats);
+                // Handle different response formats from admin vs public endpoints
+                const stats = data.stats || data;
+                this.updateDatabaseStats(stats);
             }
         } catch (error) {
             console.error('Failed to refresh database stats:', error);
@@ -603,7 +605,8 @@ class ModernShoppingApp {
                 const fallbackResponse = await fetch('/database/stats');
                 const fallbackData = await fallbackResponse.json();
                 if (fallbackResponse.ok) {
-                    this.updateDatabaseStats(fallbackData.stats);
+                    const stats = fallbackData.stats || fallbackData;
+                    this.updateDatabaseStats(stats);
                 }
             } catch (fallbackError) {
                 console.error('Fallback stats refresh also failed:', fallbackError);
@@ -927,57 +930,49 @@ class ModernShoppingApp {
 
     async runDailyUpdate() {
         try {
-            // Simple confirmation for 25 random items update
+            // Simple confirmation for 25 random items that DON'T HAVE PRICE FOR TODAY
             const confirmed = confirm(
-                '📊 Daily Price Update\n\n' +
-                'This will update 25 random products missing today\'s price data.\n\n' +
-                'Perfect for spreading updates throughout the day to build your database.\n\n' +
+                '📊 Price Update (25)\n\n' +
+                'This will update 25 random products from your database that DO NOT have a price for today\'s date.\n\n' +
+                'Run this multiple times throughout the day to gradually build your price database.\n\n' +
                 'Continue?'
             );
             
             if (!confirmed) return;
             
-            const updateType = 'Daily';
+            this.showDailyUpdateProgress();
+            this.addProgressLog('🔍 Finding 25 products missing today\'s price data...', 'info');
             
-            // Show progress modal IMMEDIATELY and test it works
-            console.log('🚀 Starting daily update:', updateType);
-            this.showProgressModal(`${updateType} Price Update`, 'Initializing...');
-            this.addProgressLog(`Starting ${updateType} price update...`, 'info');
-            this.addProgressLog(`Checking authentication...`, 'info');
-            
-            // Brief delay to show the modal is working
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            this.updateProgress(5, 'Sending request to server...', 'Request prepared, sending to backend', 'info');
-            
-            // Start the daily update process (25 random items)
-            const response = await this.makeAuthenticatedRequest('/daily-update-25', {
+            // Call the 25-item daily update endpoint
+            const response = await fetch('/daily-update-25', {
                 method: 'POST'
             });
             
-            this.updateProgress(90, 'Processing server response...', 'Received response from server', 'info');
-            
-            // Add a delay to simulate processing and let user see the progress
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            this.addProgressLog('Processing update results...', 'info');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to start price update');
+            }
             
             const result = await response.json();
             
-            if (result.success) {
-                const stats = result.stats;
-                this.updateProgressComplete(stats, updateType);
-                this.refreshDatabaseStats();
-            } else {
-                // Handle different types of failures
-                if (result.stats && result.stats.circuit_breaker_triggered) {
-                    this.updateProgressCircuitBreaker(result, updateType);
-                } else {
-                    this.updateProgressError(`${updateType} update failed: ${result.message}`);
-                }
+            this.addProgressLog(`✅ Update completed!`, 'success');
+            this.addProgressLog(`📊 Results: ${result.stats.successful_updates}/${result.stats.products_processed} products updated`, 'info');
+            
+            if (result.stats.success_rate) {
+                this.addProgressLog(`📈 Success rate: ${result.stats.success_rate}%`, 'info');
             }
+            
+            // Show completion status
+            document.getElementById('progressCloseBtn').style.display = 'block';
+            document.getElementById('progressTitle').textContent = 'Price Update Complete';
+            
+            // Force refresh database stats
+            this.refreshDatabaseStats();
+            
         } catch (error) {
-            console.error('❌ Error running daily update:', error);
-            this.addProgressLog(`Error occurred: ${error.message}`, 'error');
-            this.updateProgressError(error.message || 'Error running update');
+            console.error('Price update error:', error);
+            this.addProgressLog(`❌ Error: ${error.message}`, 'error');
+            document.getElementById('progressCloseBtn').style.display = 'block';
         }
     }
 
