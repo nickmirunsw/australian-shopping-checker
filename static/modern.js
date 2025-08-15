@@ -1151,11 +1151,6 @@ class ModernShoppingApp {
     }
 
     async smartDailyUpdate() {
-        if (!this.adminSessionToken) {
-            this.showToast('Please login as admin first', 'warning');
-            return;
-        }
-        
         // Show confirmation dialog
         const confirmed = confirm('🎯 Smart Daily Update\n\nThis will update 100 random products missing today\'s price data.\n\nPerfect for gentle, distributed updates throughout the day.\n\nContinue?');
         if (!confirmed) return;
@@ -1177,7 +1172,24 @@ class ModernShoppingApp {
             this.addProgressLog('Smart update request sent successfully', 'success');
             this.addProgressLog('Processing gentle updates with API-friendly delays...', 'info');
             
-            this.processUpdateResults(response, 'Smart');
+            // Add a delay to simulate processing and let user see the progress
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            this.addProgressLog('Processing update results...', 'info');
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                const stats = result.stats;
+                this.updateProgressComplete(stats, 'Smart');
+                this.refreshDatabaseStats();
+            } else {
+                // Handle different types of failures
+                if (result.stats && result.stats.circuit_breaker_triggered) {
+                    this.updateProgressCircuitBreaker(result, 'Smart');
+                } else {
+                    this.updateProgressError(`Smart update failed: ${result.message}`);
+                }
+            }
             
         } catch (error) {
             console.error('❌ Error running smart daily update:', error);

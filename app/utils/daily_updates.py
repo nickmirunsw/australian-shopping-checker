@@ -22,7 +22,7 @@ class DailyPriceUpdater:
             "woolworths": self.woolworths
         }
         self.consecutive_failures = 0
-        self.circuit_breaker_threshold = 10  # Stop after 10 consecutive failures
+        self.circuit_breaker_threshold = 20  # Stop after 20 consecutive failures (less sensitive)
     
     async def update_all_products(self, batch_size: int = 20, max_batches: int = None, 
                                 progress_callback=None) -> Dict[str, Any]:
@@ -181,9 +181,9 @@ class DailyPriceUpdater:
                     
                     # Dynamic delay to be respectful to the API and avoid rate limits
                     if updated_data:
-                        delay = 0.5  # Longer delay for successful requests
+                        delay = 1.5  # Longer delay for successful requests (increased from 0.5)
                     else:
-                        delay = 0.2  # Shorter delay for failed requests
+                        delay = 0.8  # Delay for failed requests (increased from 0.2)
                     
                     await asyncio.sleep(delay)
                 
@@ -193,17 +193,17 @@ class DailyPriceUpdater:
                 
                 processed_products += len(batch_products)
                 
-                # Dynamic delay between batches based on success rate
+                # Dynamic delay between batches based on success rate (increased delays)
                 if batch_num < total_batches - 1:  # Don't sleep after last batch
                     # Longer delay if batch had many failures (API might be stressed)
                     if batch_success_rate < 50:
-                        delay_time = 5.0
+                        delay_time = 15.0  # Increased from 5.0
                         logger.info(f"Low success rate ({batch_success_rate:.1f}%) - waiting {delay_time} seconds before next batch...")
                     elif batch_success_rate < 80:
-                        delay_time = 3.0
+                        delay_time = 10.0  # Increased from 3.0
                         logger.info(f"Moderate success rate ({batch_success_rate:.1f}%) - waiting {delay_time} seconds before next batch...")
                     else:
-                        delay_time = 1.5
+                        delay_time = 5.0   # Increased from 1.5
                         logger.info(f"Good success rate ({batch_success_rate:.1f}%) - waiting {delay_time} seconds before next batch...")
                     
                     await asyncio.sleep(delay_time)
@@ -370,11 +370,11 @@ class DailyPriceUpdater:
                         logger.warning(f"Smart update circuit breaker triggered: {self.consecutive_failures} consecutive failures. Stopping early.")
                         break
                 
-                # Respectful delay between requests
+                # Respectful delay between requests (increased for API stability)
                 if updated_data:
-                    delay = 1.0  # 1 second delay for successful requests
+                    delay = 2.0  # 2 second delay for successful requests (increased from 1.0)
                 else:
-                    delay = 0.5  # Shorter delay for failed requests
+                    delay = 1.0  # 1 second delay for failed requests (increased from 0.5)
                 
                 await asyncio.sleep(delay)
             
