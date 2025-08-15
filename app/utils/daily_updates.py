@@ -7,7 +7,7 @@ import logging
 from datetime import date
 from typing import List, Dict, Any, Tuple
 from ..adapters.woolworths import WoolworthsAdapter
-from .db_config import get_all_tracked_products, log_price_data
+from .db_config import get_all_tracked_products, get_products_missing_todays_price, log_price_data
 from .matching import get_product_matcher
 
 logger = logging.getLogger(__name__)
@@ -21,8 +21,10 @@ class DailyPriceUpdater:
         self.retailers = {
             "woolworths": self.woolworths
         }
+        self.consecutive_failures = 0
+        self.circuit_breaker_threshold = 10  # Stop after 10 consecutive failures
     
-    async def update_all_products(self, batch_size: int = 50, max_batches: int = None, 
+    async def update_all_products(self, batch_size: int = 20, max_batches: int = None, 
                                 progress_callback=None) -> Dict[str, Any]:
         """
         Update prices for all products currently in the database using batching.
@@ -83,49 +85,106 @@ class DailyPriceUpdater:
                     product_name = product['product_name']
                     retailer = product['retailer']
                     global_index = start_idx + i + 1
+                    updated_data = None
                     
                     try:
                         if progress_callback:
                             progress_callback(global_index, len(products_to_process), product_name, batch_num + 1, total_batches)
                         
-                        # Search for current price data
+                        # Search for current price data with timeout
                         logger.info(f"Updating product {global_index}/{len(products_to_process)}: {product_name}")
-                        updated_data = await self._get_current_price_data(product_name, retailer)
+                        
+                        # Use asyncio.wait_for to add timeout protection
+                        try:
+                            updated_data = await asyncio.wait_for(
+                                self._get_current_price_data(product_name, retailer),
+                                timeout=30.0  # 30 second timeout per product
+                            )
+                        except asyncio.TimeoutError:
+                            logger.warning(f"Timeout while updating {product_name} - skipping")
+                            failed_updates += 1
+                            batch_failed += 1
+                            continue
                         
                         if updated_data:
                             logger.info(f"Found price data for {product_name}: ${updated_data['price']}")
-                            # Log the new price data
-                            success = log_price_data(
-                                product_name=updated_data['product_name'],
-                                retailer=updated_data['retailer'],
-                                price=updated_data['price'],
-                                was_price=updated_data.get('was_price'),
-                                on_sale=updated_data.get('on_sale', False),
-                                url=updated_data.get('url')
-                            )
                             
-                            if success:
-                                successful_updates += 1
-                                batch_successful += 1
-                                new_records += 1
-                                logger.debug(f"Updated price for {product_name}: ${updated_data['price']}")
-                            else:
+                            # Reset consecutive failures on successful API call
+                            self.consecutive_failures = 0
+                            
+                            # Database operation with retry logic
+                            max_db_retries = 3
+                            db_success = False
+                            
+                            for retry in range(max_db_retries):
+                                try:
+                                    success = log_price_data(
+                                        product_name=updated_data['product_name'],
+                                        retailer=updated_data['retailer'],
+                                        price=updated_data['price'],
+                                        was_price=updated_data.get('was_price'),
+                                        on_sale=updated_data.get('on_sale', False),
+                                        url=updated_data.get('url')
+                                    )
+                                    
+                                    if success:
+                                        successful_updates += 1
+                                        batch_successful += 1
+                                        new_records += 1
+                                        db_success = True
+                                        logger.debug(f"Updated price for {product_name}: ${updated_data['price']}")
+                                        break
+                                    else:
+                                        logger.warning(f"Database insert failed for {product_name} (attempt {retry + 1})")
+                                        if retry < max_db_retries - 1:
+                                            await asyncio.sleep(1.0)  # Wait before retry
+                                        
+                                except Exception as db_error:
+                                    logger.error(f"Database error for {product_name} (attempt {retry + 1}): {db_error}")
+                                    if retry < max_db_retries - 1:
+                                        await asyncio.sleep(1.0)  # Wait before retry
+                            
+                            if not db_success:
                                 failed_updates += 1
                                 batch_failed += 1
-                                logger.warning(f"Failed to log price data for {product_name}")
+                                logger.error(f"Failed to log price data for {product_name} after {max_db_retries} attempts")
                         else:
                             failed_updates += 1
                             batch_failed += 1
+                            self.consecutive_failures += 1
                             logger.warning(f"Could not find current price data for {product_name} (search term extraction or API search failed)")
+                            
+                            # Circuit breaker: if too many consecutive failures, abort
+                            if self.consecutive_failures >= self.circuit_breaker_threshold:
+                                logger.error(f"Circuit breaker triggered: {self.consecutive_failures} consecutive failures. Stopping update process.")
+                                result = {
+                                    "success": False,
+                                    "message": f"Update aborted due to circuit breaker: {self.consecutive_failures} consecutive API failures. This may indicate API rate limiting or service issues.",
+                                    "stats": {
+                                        "total_products_in_db": total_products,
+                                        "products_processed": processed_products + i + 1,  # Include current item
+                                        "successful_updates": successful_updates,
+                                        "failed_updates": failed_updates,
+                                        "new_records": new_records,
+                                        "success_rate": round((successful_updates / (processed_products + i + 1)) * 100, 1) if (processed_products + i + 1) > 0 else 0,
+                                        "batches_processed": batch_num + 1,
+                                        "batch_size": batch_size,
+                                        "circuit_breaker_triggered": True
+                                    }
+                                }
+                                return result
                     
                     except Exception as e:
                         failed_updates += 1
                         batch_failed += 1
-                        logger.error(f"Error updating {product_name}: {e}")
+                        logger.error(f"Unexpected error updating {product_name}: {e}")
                     
-                    # Dynamic delay to be respectful to the API
-                    # Shorter delay for successful requests, longer for failures
-                    delay = 0.2 if updated_data else 0.5
+                    # Dynamic delay to be respectful to the API and avoid rate limits
+                    if updated_data:
+                        delay = 0.5  # Longer delay for successful requests
+                    else:
+                        delay = 0.2  # Shorter delay for failed requests
+                    
                     await asyncio.sleep(delay)
                 
                 # Log batch completion
@@ -134,10 +193,20 @@ class DailyPriceUpdater:
                 
                 processed_products += len(batch_products)
                 
-                # Longer delay between batches to avoid overwhelming APIs
+                # Dynamic delay between batches based on success rate
                 if batch_num < total_batches - 1:  # Don't sleep after last batch
-                    logger.info(f"Waiting 2 seconds before next batch...")
-                    await asyncio.sleep(2.0)
+                    # Longer delay if batch had many failures (API might be stressed)
+                    if batch_success_rate < 50:
+                        delay_time = 5.0
+                        logger.info(f"Low success rate ({batch_success_rate:.1f}%) - waiting {delay_time} seconds before next batch...")
+                    elif batch_success_rate < 80:
+                        delay_time = 3.0
+                        logger.info(f"Moderate success rate ({batch_success_rate:.1f}%) - waiting {delay_time} seconds before next batch...")
+                    else:
+                        delay_time = 1.5
+                        logger.info(f"Good success rate ({batch_success_rate:.1f}%) - waiting {delay_time} seconds before next batch...")
+                    
+                    await asyncio.sleep(delay_time)
             
             success_rate = (successful_updates / processed_products) * 100 if processed_products > 0 else 0
             
@@ -172,6 +241,177 @@ class DailyPriceUpdater:
                     "new_records": 0,
                     "batches_processed": 0,
                     "batch_size": batch_size
+                }
+            }
+    
+    async def smart_daily_update(self, progress_callback=None) -> Dict[str, Any]:
+        """
+        Smart daily update: randomly select 100 products missing today's price data.
+        
+        This is a gentler approach that distributes updates throughout the day,
+        avoiding API rate limits and allowing admin to do frequent small updates.
+        
+        Args:
+            progress_callback: Optional callback function to report progress
+            
+        Returns:
+            Dict with update results and statistics
+        """
+        try:
+            # Reset consecutive failures counter for new update session
+            self.consecutive_failures = 0
+            
+            # Get products missing today's price data
+            products_to_update = get_products_missing_todays_price(limit=100)
+            
+            if not products_to_update:
+                return {
+                    "success": True,
+                    "message": "All products have today's price data! 🎉",
+                    "stats": {
+                        "total_products_missing": 0,
+                        "products_processed": 0,
+                        "successful_updates": 0,
+                        "failed_updates": 0,
+                        "new_records": 0,
+                        "success_rate": 100.0,
+                        "update_type": "smart"
+                    }
+                }
+            
+            total_products = len(products_to_update)
+            successful_updates = 0
+            failed_updates = 0
+            new_records = 0
+            
+            logger.info(f"Starting smart daily update: {total_products} products missing today's price data")
+            
+            # Process products one by one (no batching needed for 100 items)
+            for i, product in enumerate(products_to_update):
+                product_name = product['product_name']
+                retailer = product['retailer']
+                current_index = i + 1
+                updated_data = None
+                
+                try:
+                    if progress_callback:
+                        progress_callback(current_index, total_products, product_name, 1, 1)
+                    
+                    # Search for current price data with timeout
+                    logger.info(f"Smart update {current_index}/{total_products}: {product_name}")
+                    
+                    try:
+                        updated_data = await asyncio.wait_for(
+                            self._get_current_price_data(product_name, retailer),
+                            timeout=30.0  # 30 second timeout per product
+                        )
+                    except asyncio.TimeoutError:
+                        logger.warning(f"Timeout while updating {product_name} - skipping")
+                        failed_updates += 1
+                        continue
+                    
+                    if updated_data:
+                        logger.info(f"Found price data for {product_name}: ${updated_data['price']}")
+                        
+                        # Reset consecutive failures on successful API call
+                        self.consecutive_failures = 0
+                        
+                        # Database operation with retry logic
+                        max_db_retries = 3
+                        db_success = False
+                        
+                        for retry in range(max_db_retries):
+                            try:
+                                success = log_price_data(
+                                    product_name=updated_data['product_name'],
+                                    retailer=updated_data['retailer'],
+                                    price=updated_data['price'],
+                                    was_price=updated_data.get('was_price'),
+                                    on_sale=updated_data.get('on_sale', False),
+                                    url=updated_data.get('url')
+                                )
+                                
+                                if success:
+                                    successful_updates += 1
+                                    new_records += 1
+                                    db_success = True
+                                    logger.debug(f"Updated price for {product_name}: ${updated_data['price']}")
+                                    break
+                                else:
+                                    logger.warning(f"Database insert failed for {product_name} (attempt {retry + 1})")
+                                    if retry < max_db_retries - 1:
+                                        await asyncio.sleep(1.0)  # Wait before retry
+                                    
+                            except Exception as db_error:
+                                logger.error(f"Database error for {product_name} (attempt {retry + 1}): {db_error}")
+                                if retry < max_db_retries - 1:
+                                    await asyncio.sleep(1.0)  # Wait before retry
+                        
+                        if not db_success:
+                            failed_updates += 1
+                            logger.error(f"Failed to log price data for {product_name} after {max_db_retries} attempts")
+                    else:
+                        failed_updates += 1
+                        self.consecutive_failures += 1
+                        logger.warning(f"Could not find current price data for {product_name}")
+                        
+                        # Circuit breaker for smart updates (stricter threshold)
+                        if self.consecutive_failures >= 5:  # Lower threshold for smart updates
+                            logger.warning(f"Smart update circuit breaker triggered: {self.consecutive_failures} consecutive failures. Stopping early.")
+                            break
+                
+                except Exception as e:
+                    failed_updates += 1
+                    self.consecutive_failures += 1
+                    logger.error(f"Unexpected error updating {product_name}: {e}")
+                    
+                    # Circuit breaker
+                    if self.consecutive_failures >= 5:
+                        logger.warning(f"Smart update circuit breaker triggered: {self.consecutive_failures} consecutive failures. Stopping early.")
+                        break
+                
+                # Respectful delay between requests
+                if updated_data:
+                    delay = 1.0  # 1 second delay for successful requests
+                else:
+                    delay = 0.5  # Shorter delay for failed requests
+                
+                await asyncio.sleep(delay)
+            
+            processed_products = successful_updates + failed_updates
+            success_rate = (successful_updates / processed_products) * 100 if processed_products > 0 else 0
+            
+            result = {
+                "success": True,
+                "message": f"Smart update completed: {successful_updates}/{processed_products} products updated ({success_rate:.1f}% success rate)",
+                "stats": {
+                    "total_products_missing": total_products,
+                    "products_processed": processed_products,
+                    "successful_updates": successful_updates,
+                    "failed_updates": failed_updates,
+                    "new_records": new_records,
+                    "success_rate": round(success_rate, 1),
+                    "update_type": "smart",
+                    "circuit_breaker_triggered": self.consecutive_failures >= 5
+                }
+            }
+            
+            logger.info(f"Smart daily update completed: {result['message']}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Smart daily update failed: {e}")
+            return {
+                "success": False,
+                "message": f"Smart daily update failed: {str(e)}",
+                "stats": {
+                    "total_products_missing": 0,
+                    "products_processed": 0,
+                    "successful_updates": 0,
+                    "failed_updates": 0,
+                    "new_records": 0,
+                    "success_rate": 0,
+                    "update_type": "smart"
                 }
             }
     

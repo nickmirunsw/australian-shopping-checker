@@ -391,6 +391,57 @@ def get_price_history(
         return []
 
 
+def get_products_missing_todays_price(limit: int = 100) -> List[Dict[str, Any]]:
+    """
+    Get products that don't have price data for today, randomly selected.
+    
+    Args:
+        limit: Maximum number of products to return
+        
+    Returns:
+        List of products that need price updates for today
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            today = date.today()
+            
+            # Get products that don't have price data for today
+            # Use DISTINCT to avoid duplicates, ORDER BY RANDOM() for randomization
+            query = """
+                SELECT DISTINCT p.product_name, p.retailer
+                FROM (
+                    SELECT DISTINCT product_name, retailer 
+                    FROM price_history
+                ) p
+                LEFT JOIN price_history ph_today 
+                    ON p.product_name = ph_today.product_name 
+                    AND p.retailer = ph_today.retailer 
+                    AND DATE(ph_today.date_recorded) = ?
+                WHERE ph_today.product_name IS NULL
+                ORDER BY RANDOM()
+                LIMIT ?
+            """
+            
+            cursor.execute(query, (today, limit))
+            results = cursor.fetchall()
+            
+            products = []
+            for row in results:
+                products.append({
+                    'product_name': row[0],
+                    'retailer': row[1]
+                })
+            
+            logger.info(f"Found {len(products)} products missing today's price data (limit: {limit})")
+            return products
+            
+    except Exception as e:
+        logger.error(f"Error getting products missing today's price: {e}")
+        return []
+
+
 def get_all_tracked_products() -> List[Dict[str, Any]]:
     """Get list of all products we're tracking."""
     try:

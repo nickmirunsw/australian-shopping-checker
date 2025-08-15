@@ -19,6 +19,7 @@
       "Bash(git push:*)",
       "Bash(git merge:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

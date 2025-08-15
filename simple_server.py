@@ -139,6 +139,23 @@ async def clear_database():
         raise HTTPException(status_code=500, detail=f"Error clearing database: {str(e)}")
 
 
+@app.post("/smart-daily-update")
+async def run_smart_daily_update():
+    """
+    Smart daily update: Update 100 random products missing today's price data.
+    
+    This endpoint provides a gentler alternative to full daily updates.
+    It randomly selects 100 products that don't have price data for today,
+    allowing for distributed updates throughout the day without overwhelming the API.
+    """
+    try:
+        updater = get_daily_updater()
+        result = await updater.smart_daily_update()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running smart daily update: {str(e)}")
+
+
 @app.post("/daily-price-update")
 async def run_daily_price_update():
     """Update prices for all products currently tracked in the database."""

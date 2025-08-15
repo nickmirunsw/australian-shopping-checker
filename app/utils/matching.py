@@ -33,9 +33,9 @@ class ProductMatcher:
     """
     
     def __init__(self, 
-                 min_similarity: float = 0.3,
-                 high_confidence_threshold: float = 0.8,
-                 medium_confidence_threshold: float = 0.6,
+                 min_similarity: float = 0.5,  # Increased from 0.3 to 0.5 for better accuracy
+                 high_confidence_threshold: float = 0.85,  # Increased from 0.8
+                 medium_confidence_threshold: float = 0.7,  # Increased from 0.6
                  exact_match_bonus: float = 0.2,
                  brand_match_bonus: float = 0.15,
                  size_match_bonus: float = 0.1,
@@ -228,6 +228,67 @@ class ProductMatcher:
         
         return min(bonus, self.keyword_match_bonus * 3)  # Cap bonus at 3 keywords
     
+    def extract_size_info(self, text: str) -> List[str]:
+        """Extract size/quantity information from text."""
+        # Enhanced size patterns to catch more variations
+        size_patterns = [
+            r'(\d+(?:\.\d+)?)\s*([lL]|[lL]itre?s?)',  # 2L, 1.5 litres
+            r'(\d+)\s*([mM][lL]|[mM]illilitre?s?)',   # 250ml, 500 millilitres
+            r'(\d+(?:\.\d+)?)\s*([kK][gG]|[kK]ilo(?:gram)?s?)',  # 1kg, 1.5 kilograms
+            r'(\d+)\s*([gG]|[gG]ram?s?)',             # 500g, 200 grams
+            r'(\d+)\s*([pP]ack|[pP]k)',               # 12 pack, 6pk
+            r'(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*([lL]|[mM][lL]|[gG]|[kK][gG])',  # 6x250ml
+            r'(\d+(?:\.\d+)?)\s*([oO]z|[oO]unce?s?)', # 16oz, 12 ounces
+            r'(\d+)\s*(piece?s?|unit?s?|ea(?:ch)?)',   # 6 pieces, 12 units, 1 ea
+        ]
+        
+        text_lower = text.lower()
+        sizes = []
+        
+        for pattern in size_patterns:
+            matches = re.findall(pattern, text_lower)
+            for match in matches:
+                if isinstance(match, tuple):
+                    sizes.append(''.join(match))
+                else:
+                    sizes.append(match)
+        
+        return sizes
+    
+    def validate_size_compatibility(self, query: str, product_name: str) -> bool:
+        """
+        Validate that product sizes are compatible to prevent mixing different sizes.
+        Returns True if sizes are compatible or if no size information is available.
+        """
+        query_sizes = self.extract_size_info(query)
+        product_sizes = self.extract_size_info(product_name)
+        
+        # If no size info in either, allow the match
+        if not query_sizes and not product_sizes:
+            return True
+        
+        # If only one has size info, allow the match (user might not specify size)
+        if not query_sizes or not product_sizes:
+            return True
+        
+        # Compare normalized sizes
+        query_sizes_norm = [s.replace(' ', '').lower() for s in query_sizes]
+        product_sizes_norm = [s.replace(' ', '').lower() for s in product_sizes]
+        
+        # Check for any matching size
+        for q_size in query_sizes_norm:
+            for p_size in product_sizes_norm:
+                # Exact match
+                if q_size == p_size:
+                    return True
+                # Similar match (e.g., "2l" matches "2litre")
+                if (q_size in p_size) or (p_size in q_size):
+                    return True
+        
+        # Sizes are specified but don't match - be conservative and reject
+        logger.debug(f"Size mismatch: query='{query_sizes}' vs product='{product_sizes}'")
+        return False
+    
     def calculate_match_score(self, query: str, product_name: str) -> MatchScore:
         """
         Calculate comprehensive match score with breakdown.
@@ -240,6 +301,11 @@ class ProductMatcher:
             MatchScore object with detailed scoring breakdown
         """
         if not query or not product_name:
+            return MatchScore(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, "low")
+        
+        # First check size compatibility to prevent mixing different sizes
+        if not self.validate_size_compatibility(query, product_name):
+            logger.debug(f"Rejecting match due to size incompatibility: '{query}' vs '{product_name}'")
             return MatchScore(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, "low")
         
         # Calculate base similarity (weighted at 60%)

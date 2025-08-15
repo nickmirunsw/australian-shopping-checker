@@ -77,7 +77,22 @@ class WoolworthsAdapter(BaseAdapter):
     def _parse_product(self, product_data: Dict[str, Any]) -> ProductResult:
         """Parse Woolworths product data into ProductResult."""
         # Extract name using actual API field names
-        name = product_data.get("DisplayName") or product_data.get("Name", "Unknown Product")
+        raw_name = product_data.get("DisplayName") or product_data.get("Name", "Unknown Product")
+        
+        # Extract size information for better product differentiation
+        size_info = product_data.get("PackageSize") or product_data.get("Size") or ""
+        
+        # Combine name with size if size is available and not already in name
+        name = raw_name
+        if size_info and size_info.lower() not in raw_name.lower():
+            name = f"{raw_name} {size_info}".strip()
+        
+        # Add stockcode for absolute uniqueness (critical for preventing mixing)
+        stockcode = product_data.get("Stockcode")
+        if stockcode:
+            # Include stockcode in internal name for absolute differentiation
+            # This ensures 60g and 140g versions are treated as completely different products
+            name = f"{name} [WOW:{stockcode}]"
         
         # Extract pricing using actual API field names
         price = product_data.get("Price")
@@ -93,7 +108,6 @@ class WoolworthsAdapter(BaseAdapter):
             promo_text = f"Save ${savings:.2f}"
         
         # Extract URL
-        stockcode = product_data.get("Stockcode")
         url_friendly = product_data.get("UrlFriendlyName")
         url = None
         if stockcode:
@@ -102,15 +116,22 @@ class WoolworthsAdapter(BaseAdapter):
         # Extract stock info
         in_stock = product_data.get("IsAvailable") or product_data.get("IsInStock")
         
+        # Create display name (without stockcode) for user-facing results
+        display_name = raw_name
+        if size_info and size_info.lower() not in raw_name.lower():
+            display_name = f"{raw_name} {size_info}".strip()
+        
         return ProductResult(
-            name=name,
+            name=name,  # Internal name with stockcode for uniqueness
+            display_name=display_name,  # Clean name for display
             price=price,
             was=was,
             promoText=promo_text,
             promoFlag=promo_flag,
             url=url,
             inStock=in_stock,
-            retailer="woolworths"
+            retailer="woolworths",
+            stockcode=stockcode  # Store for reference
         )
     
     async def search(self, query: str, postcode: str) -> List[ProductResult]:

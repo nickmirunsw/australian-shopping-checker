@@ -93,7 +93,67 @@ def init_database():
             )
         """)
         
-        # Create favorites table
+        # Create users table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP,
+                is_active BOOLEAN DEFAULT TRUE
+            )
+        """)
+        
+        # Create user_favorites table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_favorites (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                product_name VARCHAR(500) NOT NULL,
+                retailer VARCHAR(50) NOT NULL DEFAULT 'woolworths',
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, product_name, retailer)
+            )
+        """)
+        
+        # Create user_sessions table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_sessions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                session_token VARCHAR(255) UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE
+            )
+        """)
+        
+        # Create admin favorites table (rename existing favorites to admin_favorites)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS admin_favorites (
+                id SERIAL PRIMARY KEY,
+                product_name VARCHAR(500) NOT NULL,
+                retailer VARCHAR(50) NOT NULL DEFAULT 'woolworths',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(product_name, retailer)
+            )
+        """)
+        
+        # Migrate existing favorites to admin_favorites if needed
+        cursor.execute("""
+            INSERT INTO admin_favorites (product_name, retailer, created_at)
+            SELECT product_name, retailer, created_at 
+            FROM favorites 
+            WHERE NOT EXISTS (
+                SELECT 1 FROM admin_favorites af 
+                WHERE af.product_name = favorites.product_name 
+                AND af.retailer = favorites.retailer
+            )
+        """)
+        
+        # Create favorites table (legacy - will be kept for backwards compatibility)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS favorites (
                 id SERIAL PRIMARY KEY,
@@ -118,6 +178,32 @@ def init_database():
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_alternatives_product_name 
             ON alternative_products(product_name)
+        """)
+        
+        # Create indexes for user tables
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_user_favorites_user_id 
+            ON user_favorites(user_id)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_user_sessions_token 
+            ON user_sessions(session_token)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_user_sessions_expires 
+            ON user_sessions(expires_at)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_users_username 
+            ON users(username)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_users_email 
+            ON users(email)
         """)
         
         conn.commit()
@@ -341,6 +427,56 @@ def get_price_history(
             
     except Exception as e:
         logger.error(f"Failed to get price history: {e}")
+        return []
+
+def get_products_missing_todays_price(limit: int = 100) -> List[Dict[str, Any]]:
+    """
+    Get products that don't have price data for today, randomly selected.
+    
+    Args:
+        limit: Maximum number of products to return
+        
+    Returns:
+        List of products that need price updates for today
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            today = date.today()
+            
+            # Get products that don't have price data for today
+            # Use DISTINCT to avoid duplicates, ORDER BY RANDOM() for randomization
+            query = """
+                SELECT DISTINCT p.product_name, p.retailer
+                FROM (
+                    SELECT DISTINCT product_name, retailer 
+                    FROM price_history
+                ) p
+                LEFT JOIN price_history ph_today 
+                    ON p.product_name = ph_today.product_name 
+                    AND p.retailer = ph_today.retailer 
+                    AND DATE(ph_today.date_recorded) = %s
+                WHERE ph_today.product_name IS NULL
+                ORDER BY RANDOM()
+                LIMIT %s
+            """
+            
+            cursor.execute(query, (today, limit))
+            results = cursor.fetchall()
+            
+            products = []
+            for row in results:
+                products.append({
+                    'product_name': row[0],
+                    'retailer': row[1]
+                })
+            
+            logger.info(f"Found {len(products)} products missing today's price data (limit: {limit})")
+            return products
+            
+    except Exception as e:
+        logger.error(f"Error getting products missing today's price: {e}")
         return []
 
 def get_all_tracked_products() -> List[Dict[str, Any]]:

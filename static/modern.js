@@ -5,6 +5,7 @@ class ModernShoppingApp {
         this.results = null;
         this.adminSessionToken = localStorage.getItem('adminSessionToken');
         this.theme = localStorage.getItem('theme') || 'light';
+        this.modalStack = []; // Track modal history for proper navigation
         
         this.initializeApp();
         this.setupEventListeners();
@@ -113,6 +114,10 @@ class ModernShoppingApp {
 
         document.getElementById('testProgressBtn')?.addEventListener('click', () => {
             this.testProgressModal();
+        });
+
+        document.getElementById('smartUpdateBtn')?.addEventListener('click', () => {
+            this.smartDailyUpdate();
         });
 
         document.getElementById('debugUpdateBtn')?.addEventListener('click', () => {
@@ -349,6 +354,29 @@ class ModernShoppingApp {
         const card = document.createElement('div');
         card.className = 'product-card';
         
+        // Handle case where no alternatives found
+        if (!result.alternatives || result.alternatives.length === 0) {
+            card.innerHTML = `
+                <div class="product-header" style="background: linear-gradient(135deg, var(--color-gray-500), var(--color-gray-600));">
+                    <div class="product-name">${this.capitalizeFirst(result.input)}</div>
+                    <div class="product-summary">
+                        <span>No matches found</span>
+                        <span style="font-size: 0.8rem; opacity: 0.8;">Try a different search term</span>
+                    </div>
+                </div>
+                <div class="product-body">
+                    <div class="empty-alternatives">
+                        <i data-lucide="search-x" style="width: 48px; height: 48px; color: var(--color-gray-400); margin-bottom: 1rem;"></i>
+                        <p style="color: var(--text-secondary); text-align: center; margin: 0;">
+                            Sorry, we couldn't find "${result.input}" at Woolworths. 
+                            Try searching for a more generic term like "milk" instead of "Dairy Farmers milk 2L".
+                        </p>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+        
         const bestMatch = result.alternatives[0];
         const onSaleCount = result.alternatives.filter(alt => alt.onSale).length;
         
@@ -356,11 +384,13 @@ class ModernShoppingApp {
             <div class="product-header">
                 <div class="product-name">${this.capitalizeFirst(result.input)}</div>
                 <div class="product-summary">
-                    <span>Best: ${bestMatch.name}</span>
+                    <span>Best: ${bestMatch.display_name || bestMatch.name}</span>
                     <span>$${bestMatch.price}</span>
                     ${onSaleCount > 0 ? `<span>${onSaleCount} on sale</span>` : ''}
-                    <button onclick="app.showPriceHistory('${bestMatch.name}', '${bestMatch.retailer || 'woolworths'}')" 
-                            class="btn btn-ghost btn-sm" title="Price History">
+                    <button onclick="app.showPriceHistory('${bestMatch.name}', '${bestMatch.retailer || 'woolworths'}', event)" 
+                            ontouchstart="this.style.background='var(--color-primary)'" 
+                            ontouchend="this.style.background=''"
+                            class="btn btn-ghost btn-sm mobile-friendly" title="Price History">
                         <i data-lucide="trending-up"></i>
                     </button>
                 </div>
@@ -376,10 +406,14 @@ class ModernShoppingApp {
     }
 
     createAlternativeItem(alt, inputName, isAdmin = false) {
+        // Use display_name if available, fallback to name
+        const displayName = alt.display_name || alt.name;
+        const internalName = alt.name; // Keep internal name for database operations
+        
         return `
             <div class="alternative-item">
                 <div class="alternative-info">
-                    <div class="alternative-name">${alt.name}</div>
+                    <div class="alternative-name">${displayName}</div>
                     <div class="alternative-details">
                         Match: ${Math.round((alt.matchScore || 0.8) * 100)}%
                         ${alt.promoText ? `• ${alt.promoText}` : ''}
@@ -390,13 +424,17 @@ class ModernShoppingApp {
                     ${alt.was ? `<div class="was-price">was $${alt.was}</div>` : ''}
                     ${alt.onSale ? '<div class="sale-badge">ON SALE</div>' : ''}
                     <div class="alternative-actions">
-                        <button onclick="app.showPriceHistory('${alt.name}', '${alt.retailer || 'woolworths'}')" 
-                                class="btn btn-ghost btn-sm" title="Price History">
+                        <button onclick="app.showPriceHistory('${internalName}', '${alt.retailer || 'woolworths'}', event)" 
+                                ontouchstart="this.style.background='var(--color-primary)'" 
+                                ontouchend="this.style.background=''"
+                                class="btn btn-ghost btn-sm mobile-friendly" title="Price History">
                             <i data-lucide="trending-up"></i>
                         </button>
                         ${isAdmin ? `
-                            <button onclick="app.addToFavorites('${alt.name}', '${alt.retailer || 'woolworths'}')" 
-                                    class="btn btn-ghost btn-sm" title="Add to Favorites">
+                            <button onclick="app.addToFavorites('${internalName}', '${alt.retailer || 'woolworths'}', this)" 
+                                    ontouchstart="this.style.background='var(--color-secondary)'" 
+                                    ontouchend="this.style.background=''"
+                                    class="btn btn-ghost btn-sm mobile-friendly" title="Add to Favorites">
                                 <i data-lucide="heart"></i>
                             </button>
                         ` : ''}
@@ -643,7 +681,7 @@ class ModernShoppingApp {
             </div>
         `;
         
-        this.showModal();
+        this.showModal('tracked-products', products);
         this.renderProducts(products);
         
         // Focus search input
@@ -694,7 +732,7 @@ class ModernShoppingApp {
                                             style="padding: 0.4rem 0.6rem; background: var(--color-primary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
                                         History
                                     </button>
-                                    <button onclick="app.addToFavorites('${product.product_name}', '${product.retailer}')" 
+                                    <button onclick="app.addToFavorites('${product.product_name}', '${product.retailer}', this)" 
                                             style="padding: 0.4rem 0.6rem; background: var(--color-secondary); color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
                                         ♥ Fav
                                     </button>
@@ -922,7 +960,12 @@ class ModernShoppingApp {
                 this.updateProgressComplete(stats, updateType);
                 this.refreshDatabaseStats();
             } else {
-                this.updateProgressError(`${updateType} update failed: ${result.message}`);
+                // Handle different types of failures
+                if (result.stats && result.stats.circuit_breaker_triggered) {
+                    this.updateProgressCircuitBreaker(result, updateType);
+                } else {
+                    this.updateProgressError(`${updateType} update failed: ${result.message}`);
+                }
             }
         } catch (error) {
             console.error('❌ Error running daily update:', error);
@@ -1031,6 +1074,51 @@ class ModernShoppingApp {
         this.showToast('Update failed', 'error');
     }
 
+    updateProgressCircuitBreaker(result, updateType) {
+        const stats = result.stats;
+        this.updateProgress(50, 'Update partially completed (Circuit breaker triggered)', 'API rate limiting detected - update stopped for safety', 'warning');
+        
+        // Show partial results summary
+        const summaryContainer = document.getElementById('progressSummary');
+        summaryContainer.innerHTML = `
+            <h4>⚠️ Update Partially Completed</h4>
+            <div class="progress-stats">
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.products_processed}</div>
+                    <div class="progress-stat-label">Processed</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.successful_updates}</div>
+                    <div class="progress-stat-label">Successful</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.failed_updates}</div>
+                    <div class="progress-stat-label">Failed</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">${stats.success_rate}%</div>
+                    <div class="progress-stat-label">Success Rate</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: var(--color-warning); color: white; border-radius: 0.5rem;">
+                <h5 style="margin: 0 0 0.5rem 0;">🛡️ Circuit Breaker Activated</h5>
+                <p style="margin: 0; font-size: 0.9rem;">
+                    The update was stopped after detecting API rate limiting or service issues. 
+                    This protects your account from being blocked. Try again later with Quick Mode, 
+                    or contact support if the issue persists.
+                </p>
+            </div>
+            <p><strong>Recommendation:</strong> Use Quick Mode (100 products max) for now, or wait 30 minutes before trying a full update.</p>
+        `;
+        summaryContainer.classList.remove('hidden');
+        
+        // Show close button
+        document.getElementById('progressCloseBtn').style.display = 'block';
+        document.getElementById('progressCloseBtn').onclick = () => this.hideProgressModal();
+        
+        this.showToast(`Update stopped: API rate limiting detected after ${stats.products_processed} products`, 'warning');
+    }
+
     hideProgressModal() {
         document.getElementById('progressOverlay').classList.add('hidden');
     }
@@ -1060,6 +1148,43 @@ class ModernShoppingApp {
                 }, 500);
             }
         }, 300);
+    }
+
+    async smartDailyUpdate() {
+        if (!this.adminSessionToken) {
+            this.showToast('Please login as admin first', 'warning');
+            return;
+        }
+        
+        // Show confirmation dialog
+        const confirmed = confirm('🎯 Smart Daily Update\n\nThis will update 100 random products missing today\'s price data.\n\nPerfect for gentle, distributed updates throughout the day.\n\nContinue?');
+        if (!confirmed) return;
+        
+        try {
+            this.showDailyUpdateProgress();
+            this.addProgressLog('🎯 Starting Smart Daily Update...', 'info');
+            this.addProgressLog('Selecting 100 products missing today\'s price data...', 'info');
+            
+            const response = await fetch('/smart-daily-update', {
+                method: 'POST'
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to start smart update');
+            }
+            
+            this.addProgressLog('Smart update request sent successfully', 'success');
+            this.addProgressLog('Processing gentle updates with API-friendly delays...', 'info');
+            
+            this.processUpdateResults(response, 'Smart');
+            
+        } catch (error) {
+            console.error('❌ Error running smart daily update:', error);
+            this.addProgressLog(`Error occurred: ${error.message}`, 'error');
+            this.updateProgressError(error.message || 'Error running smart update');
+            this.showToast('Smart update failed', 'error');
+        }
     }
 
     // Debug function to test the exact daily update flow without actually updating
@@ -1106,16 +1231,70 @@ class ModernShoppingApp {
         }, 1500);
     }
 
-    showModal() {
+    showModal(modalType = 'generic', modalData = null) {
+        // Store previous modal state if any
+        const currentModal = document.getElementById('modalContent').innerHTML;
+        if (currentModal.trim() && this.modalStack.length === 0) {
+            this.modalStack.push({
+                type: 'previous',
+                content: currentModal
+            });
+        }
+        
+        // Add current modal to stack
+        this.modalStack.push({
+            type: modalType,
+            data: modalData
+        });
+        
         document.getElementById('modalOverlay').classList.remove('hidden');
     }
 
     hideModal() {
+        // Pop current modal from stack
+        this.modalStack.pop();
+        
+        // If there's a previous modal, restore it
+        if (this.modalStack.length > 0) {
+            const previousModal = this.modalStack[this.modalStack.length - 1];
+            
+            if (previousModal.type === 'tracked-products') {
+                // Restore tracked products modal
+                this.viewTrackedProducts();
+                return;
+            } else if (previousModal.type === 'previous' && previousModal.content) {
+                // Restore previous modal content
+                document.getElementById('modalContent').innerHTML = previousModal.content;
+                return;
+            }
+        }
+        
+        // No previous modal, hide completely
         document.getElementById('modalOverlay').classList.add('hidden');
+        this.modalStack = []; // Clear stack
     }
 
-    async showPriceHistory(productName, retailer) {
+    async showPriceHistory(productName, retailer, event = null) {
         try {
+            // Prevent default behavior and stop propagation for mobile
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // Add visual feedback for mobile users
+            const button = event?.target?.closest('button');
+            if (button) {
+                button.style.background = 'var(--color-primary)';
+                button.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    button.style.background = '';
+                    button.style.transform = '';
+                }, 200);
+            }
+            
+            this.showToast('Loading price history...', 'info');
+            
             // Always use public endpoint to avoid auth issues
             const response = await fetch(`/price-history/${encodeURIComponent(productName)}?retailer=${encodeURIComponent(retailer)}&days_back=365`);
             const data = await response.json();
@@ -1176,7 +1355,7 @@ class ModernShoppingApp {
             </div>
         `;
         
-        this.showModal();
+        this.showModal('price-history', { productName, retailer, history });
         
         // Load sale prediction
         this.loadSalePrediction(productName, retailer);
@@ -1291,21 +1470,60 @@ class ModernShoppingApp {
         }
     }
 
-    async addToFavorites(productName, retailer) {
+    async addToFavorites(productName, retailer, buttonElement = null) {
         if (!this.adminSessionToken) {
             this.showToast('Please login as admin first', 'warning');
             return;
         }
         
+        // Find the button element if not provided
+        if (!buttonElement) {
+            buttonElement = event.target.closest('button');
+        }
+        
+        // Prevent double-clicking/tapping
+        if (buttonElement && buttonElement.disabled) {
+            return;
+        }
+        
+        // Immediate visual feedback for mobile responsiveness
+        const originalHTML = buttonElement?.innerHTML || '';
+        const originalBackground = buttonElement?.style.background || '';
+        const originalColor = buttonElement?.style.color || '';
+        
+        if (buttonElement) {
+            // Immediate feedback
+            buttonElement.innerHTML = '<i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i>';
+            buttonElement.style.background = 'var(--color-warning)';
+            buttonElement.style.color = 'white';
+            buttonElement.disabled = true;
+            lucide.createIcons();
+            
+            // Add haptic feedback for mobile
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+        
+        // Show immediate toast for better UX
+        this.showToast('Adding to favorites...', 'info');
+        
         try {
+            // Add timeout for mobile networks
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
             const response = await fetch('/admin/favorites', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${this.adminSessionToken}`
                 },
-                body: JSON.stringify({ product_name: productName, retailer: retailer })
+                body: JSON.stringify({ product_name: productName, retailer: retailer }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             if (response.status === 401) {
                 this.adminSessionToken = null;
@@ -1318,13 +1536,50 @@ class ModernShoppingApp {
             const result = await response.json();
             
             if (result.success) {
+                // Visual feedback - success state
+                if (buttonElement) {
+                    buttonElement.innerHTML = '<i data-lucide="heart" style="fill: currentColor;"></i>';
+                    buttonElement.style.background = 'var(--color-error)'; // Red for favorited
+                    buttonElement.style.color = 'white';
+                    buttonElement.title = 'Added to favorites';
+                    lucide.createIcons();
+                }
                 this.showToast(`Added "${productName}" to favorites`, 'success');
             } else {
+                // Visual feedback - error state
+                if (buttonElement) {
+                    buttonElement.innerHTML = '<i data-lucide="heart"></i>';
+                    buttonElement.style.background = 'var(--color-gray-400)';
+                    buttonElement.disabled = false;
+                }
                 this.showToast(result.message || 'Failed to add to favorites', 'error');
             }
         } catch (error) {
             console.error('Error adding to favorites:', error);
-            this.showToast('Error adding to favorites', 'error');
+            
+            // Better error handling for different scenarios
+            let errorMessage = 'Error adding to favorites';
+            if (error.name === 'AbortError') {
+                errorMessage = 'Request timed out - please try again';
+            } else if (!navigator.onLine) {
+                errorMessage = 'No internet connection';
+            }
+            
+            // Visual feedback - error state with recovery option
+            if (buttonElement) {
+                buttonElement.innerHTML = '<i data-lucide="heart"></i>';
+                buttonElement.style.background = originalBackground;
+                buttonElement.style.color = originalColor;
+                buttonElement.disabled = false;
+                lucide.createIcons();
+                
+                // Add retry functionality for mobile users
+                buttonElement.onclick = () => {
+                    this.addToFavorites(productName, retailer, buttonElement);
+                };
+            }
+            
+            this.showToast(errorMessage, 'error');
         }
     }
 
@@ -1405,7 +1660,7 @@ class ModernShoppingApp {
             </div>
         `;
         
-        this.showModal();
+        this.showModal('favorites', favorites);
     }
 
     async removeFavorite(favoriteId) {

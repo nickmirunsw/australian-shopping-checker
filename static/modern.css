@@ -15,6 +15,7 @@
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
+  --color-info: #3b82f6;
   
   /* Grays */
   --color-gray-50: #f9fafb;
@@ -589,6 +590,42 @@ body {
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all var(--transition-normal);
+}
+
+.empty-alternatives {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-secondary);
+}
+
+/* Mobile-friendly button improvements */
+.mobile-friendly {
+  min-height: 44px; /* Apple recommended minimum touch target */
+  min-width: 44px;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent; /* Remove iOS tap highlight */
+}
+
+.mobile-friendly:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+/* Prevent double-tap zoom on buttons */
+.btn {
+  touch-action: manipulation;
+}
+
+/* Better touch feedback for mobile */
+@media (hover: none) {
+  .mobile-friendly:hover {
+    background: var(--bg-elevated);
+  }
+  
+  .mobile-friendly:active {
+    background: var(--color-primary) !important;
+    color: white !important;
+  }
 }
 
 [data-theme="dark"] .product-card {
