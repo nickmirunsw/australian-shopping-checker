@@ -727,12 +727,74 @@ class ModernShoppingApp {
                 // Remove any existing listeners by cloning the node
                 const newCloseBtn = closeBtn.cloneNode(true);
                 closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-                // Add the new listener
+                
+                // Make the close button VERY obvious and impossible to miss
+                newCloseBtn.style.background = '#e74c3c';
+                newCloseBtn.style.color = 'white';
+                newCloseBtn.style.padding = '15px 25px';
+                newCloseBtn.style.fontSize = '18px';
+                newCloseBtn.style.fontWeight = 'bold';
+                newCloseBtn.style.border = '3px solid #c0392b';
+                newCloseBtn.style.borderRadius = '8px';
+                newCloseBtn.style.cursor = 'pointer';
+                newCloseBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+                newCloseBtn.textContent = '✕ CLOSE MODAL ✕';
+                
+                // Add multiple event listeners for maximum reliability
                 newCloseBtn.addEventListener('click', (e) => {
+                    console.log('🔴 CLOSE BUTTON CLICKED!');
                     e.preventDefault();
                     e.stopPropagation();
                     this.hideModal();
+                    this.showToast('✅ Modal closed successfully!', 'success');
                 });
+                
+                // Add backup listeners for touch devices
+                newCloseBtn.addEventListener('touchstart', (e) => {
+                    console.log('🔴 CLOSE BUTTON TOUCHED!');
+                    e.preventDefault();
+                    this.hideModal();
+                    this.showToast('✅ Modal closed (touch)!', 'success');
+                });
+                
+                // Add backup listener for keyboard
+                newCloseBtn.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        console.log('🔴 CLOSE BUTTON KEYBOARD!');
+                        e.preventDefault();
+                        this.hideModal();
+                        this.showToast('✅ Modal closed (keyboard)!', 'success');
+                    }
+                });
+                
+                console.log('✅ Enhanced close button set up successfully');
+            } else {
+                console.error('❌ Close button not found!');
+                // Create emergency close button if none exists
+                const emergencyClose = document.createElement('button');
+                emergencyClose.textContent = '✕ EMERGENCY CLOSE ✕';
+                emergencyClose.style.position = 'fixed';
+                emergencyClose.style.top = '20px';
+                emergencyClose.style.right = '20px';
+                emergencyClose.style.background = '#e74c3c';
+                emergencyClose.style.color = 'white';
+                emergencyClose.style.padding = '15px';
+                emergencyClose.style.fontSize = '16px';
+                emergencyClose.style.border = 'none';
+                emergencyClose.style.borderRadius = '8px';
+                emergencyClose.style.zIndex = '10000';
+                emergencyClose.addEventListener('click', () => {
+                    this.hideModal();
+                    this.showToast('Emergency close activated!', 'success');
+                });
+                document.body.appendChild(emergencyClose);
+                
+                // Remove emergency button after 30 seconds
+                setTimeout(() => {
+                    if (document.body.contains(emergencyClose)) {
+                        document.body.removeChild(emergencyClose);
+                    }
+                }, 30000);
             }
             
             // Search input
@@ -1614,13 +1676,26 @@ class ModernShoppingApp {
         if (!confirmed) return;
         
         try {
-            this.showProgressModal('Quick Update (10)', 'Updating prices...');
+            // Show progress modal with NO close button initially
+            this.showProgressModal('Quick Update (10)', 'Starting update...');
+            document.getElementById('progressCloseBtn').style.display = 'none';
+            document.getElementById('progressCloseBtn').textContent = 'Please Wait...';
+            
+            // Simulate progress steps
+            this.updateProgress(10, '⚡ Starting Quick Update...');
             this.addProgressLog('⚡ Starting Quick Update...', 'info');
-            this.addProgressLog('Selecting 10 products missing today\'s price data...', 'info');
+            
+            this.updateProgress(25, 'Selecting 10 products missing today\'s price data...');
+            this.addProgressLog('🔍 Selecting 10 products missing today\'s price data...', 'info');
+            
+            this.updateProgress(50, 'Sending request to server...');
+            this.addProgressLog('📡 Sending request to server...', 'info');
             
             const response = await this.makeAuthenticatedRequest('/quick-update', {
                 method: 'POST'
             });
+            
+            this.updateProgress(75, 'Processing response...');
             
             if (!response.ok) {
                 const errorData = await response.json();
@@ -1629,42 +1704,79 @@ class ModernShoppingApp {
             
             const result = await response.json();
             
+            this.updateProgress(100, 'Complete!');
+            
+            // Clear existing logs and show final results
+            document.getElementById('progressLogs').innerHTML = '';
+            
             if (result.success) {
-                this.addProgressLog(`✅ ${result.message}`, 'success');
+                // Show BIG SUCCESS message
+                this.addProgressLog(`🎉 SUCCESS! ${result.message}`, 'success');
+                this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
                 
                 // Show detailed stats
                 const stats = result.stats;
                 if (stats.products_processed > 0) {
-                    this.addProgressLog(`📊 Products processed: ${stats.products_processed}`, 'info');
-                    this.addProgressLog(`✅ Successful updates: ${stats.successful_updates}`, 'success');
-                    this.addProgressLog(`❌ Failed updates: ${stats.failed_updates}`, stats.failed_updates > 0 ? 'warning' : 'info');
-                    this.addProgressLog(`📈 Success rate: ${stats.success_rate}%`, 'info');
+                    this.addProgressLog(`📊 PRODUCTS PROCESSED: ${stats.products_processed}`, 'info');
+                    this.addProgressLog(`✅ SUCCESSFUL UPDATES: ${stats.successful_updates}`, 'success');
+                    this.addProgressLog(`❌ FAILED UPDATES: ${stats.failed_updates}`, stats.failed_updates > 0 ? 'warning' : 'info');
+                    this.addProgressLog(`📈 SUCCESS RATE: ${stats.success_rate}%`, 'info');
                     
                     if (stats.new_records > 0) {
-                        this.addProgressLog(`💾 New records added: ${stats.new_records}`, 'success');
+                        this.addProgressLog(`💾 NEW RECORDS ADDED: ${stats.new_records}`, 'success');
                     }
                 } else {
-                    this.addProgressLog(`ℹ️ No products needed updating - all have today's data!`, 'info');
+                    this.addProgressLog(`ℹ️ NO UPDATES NEEDED - All products have today's data!`, 'info');
                 }
                 
+                this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
                 this.addProgressLog(`🎯 Update type: ${stats.update_type}`, 'info');
                 this.addProgressLog(`📅 Data stored in PostgreSQL price_history table`, 'info');
                 
-                document.getElementById('progressTitle').textContent = 'Quick Update Complete ✅';
+                document.getElementById('progressTitle').textContent = '🎉 QUICK UPDATE SUCCESSFUL!';
+                document.getElementById('progressCloseBtn').textContent = 'GOT IT! ✅';
             } else {
-                this.addProgressLog(`❌ Update failed: ${result.message}`, 'error');
-                document.getElementById('progressTitle').textContent = 'Quick Update Failed ❌';
+                // Show BIG FAILURE message
+                this.addProgressLog(`💥 FAILED! ${result.message}`, 'error');
+                this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+                this.addProgressLog(`❌ The Quick Update did not complete successfully`, 'error');
+                this.addProgressLog(`❌ Please try again or contact support`, 'error');
+                
+                document.getElementById('progressTitle').textContent = '💥 QUICK UPDATE FAILED!';
+                document.getElementById('progressCloseBtn').textContent = 'GOT IT! ❌';
             }
             
-            // Show close button
+            // Force user to acknowledge by showing prominent button
             document.getElementById('progressCloseBtn').style.display = 'block';
+            document.getElementById('progressCloseBtn').style.background = '#e74c3c';
+            document.getElementById('progressCloseBtn').style.color = 'white';
+            document.getElementById('progressCloseBtn').style.padding = '12px 24px';
+            document.getElementById('progressCloseBtn').style.fontSize = '16px';
+            document.getElementById('progressCloseBtn').style.fontWeight = 'bold';
             
             this.refreshDatabaseStats();
             
         } catch (error) {
             console.error('Quick update error:', error);
+            
+            // Clear logs and show error
+            document.getElementById('progressLogs').innerHTML = '';
+            this.updateProgress(100, 'Error occurred');
+            
+            this.addProgressLog(`💥 CRITICAL ERROR!`, 'error');
+            this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
             this.addProgressLog(`❌ Error: ${error.message}`, 'error');
+            this.addProgressLog(`❌ The Quick Update could not complete`, 'error');
+            this.addProgressLog(`❌ Please check your internet connection and try again`, 'error');
+            
+            document.getElementById('progressTitle').textContent = '💥 ERROR OCCURRED!';
             document.getElementById('progressCloseBtn').style.display = 'block';
+            document.getElementById('progressCloseBtn').textContent = 'GOT IT! ❌';
+            document.getElementById('progressCloseBtn').style.background = '#e74c3c';
+            document.getElementById('progressCloseBtn').style.color = 'white';
+            document.getElementById('progressCloseBtn').style.padding = '12px 24px';
+            document.getElementById('progressCloseBtn').style.fontSize = '16px';
+            document.getElementById('progressCloseBtn').style.fontWeight = 'bold';
         }
     }
 }
