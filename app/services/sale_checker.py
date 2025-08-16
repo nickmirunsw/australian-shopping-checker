@@ -277,15 +277,19 @@ class SaleChecker:
                             url=result.get('url')
                         )
                     
-                    # Log alternatives only to dedicated alternatives table (avoid duplication in price_history)
+                    # Log alternatives to price_history table as well (store everything in one place)
                     if result.get('alternatives'):
-                        # Store alternatives in dedicated alternatives table
-                        log_alternative_products(
-                            search_query=item,
-                            retailer=result['retailer'],
-                            alternatives=result['alternatives']
-                        )
-                        logger.debug(f"Logged {len(result['alternatives'])} alternatives to alternatives table")
+                        for alternative in result['alternatives']:
+                            if alternative.get('name') and alternative.get('price') is not None:
+                                log_price_data(
+                                    product_name=alternative['name'],
+                                    retailer=result['retailer'],
+                                    price=alternative['price'],
+                                    was_price=alternative.get('was'),
+                                    on_sale=alternative.get('onSale', False),
+                                    url=alternative.get('url')
+                                )
+                        logger.debug(f"Logged {len(result['alternatives'])} alternatives to price_history table")
                 except Exception as e:
                     # Don't let database errors break the main functionality
                     logger.warning(f"Failed to log data to database: {e}")

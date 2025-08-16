@@ -635,7 +635,6 @@ class ModernShoppingApp {
         if (!statsContainer) return;
         
         const priceHistory = stats.price_history || {};
-        const alternatives = stats.alternatives || {};
         
         statsContainer.innerHTML = `
             <div class="stat-card">
@@ -649,6 +648,14 @@ class ModernShoppingApp {
             <div class="stat-card">
                 <div class="stat-value" style="color: ${(priceHistory.todays_updates || 0) > 0 ? 'var(--color-success)' : 'var(--color-warning)'};">${priceHistory.todays_updates || 0}</div>
                 <div class="stat-label">Updated Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${priceHistory.on_sale_count || 0}</div>
+                <div class="stat-label">Items on Sale</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">$${priceHistory.average_price || '0.00'}</div>
+                <div class="stat-label">Avg Price</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">${this.calculateDaysBetween(priceHistory.oldest_record, priceHistory.newest_record)}</div>
@@ -714,10 +721,18 @@ class ModernShoppingApp {
         
         // Set up modal-specific event listeners
         setTimeout(() => {
-            // Close button
+            // Close button - remove any existing listeners first
             const closeBtn = document.getElementById('closeModalBtn');
             if (closeBtn) {
-                closeBtn.addEventListener('click', () => this.hideModal());
+                // Remove any existing listeners by cloning the node
+                const newCloseBtn = closeBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+                // Add the new listener
+                newCloseBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.hideModal();
+                });
             }
             
             // Search input
@@ -1620,6 +1635,18 @@ class ModernShoppingApp {
             if (result.stats.success_rate) {
                 this.addProgressLog(`📈 Success rate: ${result.stats.success_rate}%`, 'info');
             }
+            
+            // Add detailed logging about what happened
+            if (result.stats.new_records > 0) {
+                this.addProgressLog(`💾 Added ${result.stats.new_records} new price records to database`, 'info');
+            }
+            
+            if (result.stats.failed_updates > 0) {
+                this.addProgressLog(`⚠️ ${result.stats.failed_updates} products failed to update`, 'warning');
+            }
+            
+            this.addProgressLog(`🎯 Update type: ${result.stats.update_type}`, 'info');
+            this.addProgressLog(`📅 All data stored in price_history table`, 'info');
             
             // Show completion status
             document.getElementById('progressCloseBtn').style.display = 'block';
