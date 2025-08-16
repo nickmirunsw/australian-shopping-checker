@@ -405,7 +405,7 @@ class ModernShoppingApp {
             </div>
             <div class="product-body">
                 <div class="alternatives-grid">
-                    ${result.alternatives.map(alt => this.createAlternativeItem(alt, result.input, !!this.adminSessionToken)).join('')}
+                    ${(result.alternatives || []).map(alt => this.createAlternativeItem(alt, result.input, !!this.adminSessionToken)).join('')}
                 </div>
             </div>
         `;
