@@ -1618,7 +1618,7 @@ class ModernShoppingApp {
             this.addProgressLog('⚡ Starting Quick Update...', 'info');
             this.addProgressLog('Selecting 10 products missing today\'s price data...', 'info');
             
-            const response = await fetch('/quick-update', {
+            const response = await this.makeAuthenticatedRequest('/quick-update', {
                 method: 'POST'
             });
             
@@ -1629,28 +1629,35 @@ class ModernShoppingApp {
             
             const result = await response.json();
             
-            this.addProgressLog(`✅ Quick update completed!`, 'success');
-            this.addProgressLog(`📊 Results: ${result.stats.successful_updates}/${result.stats.products_processed} products updated`, 'info');
-            
-            if (result.stats.success_rate) {
-                this.addProgressLog(`📈 Success rate: ${result.stats.success_rate}%`, 'info');
+            if (result.success) {
+                this.addProgressLog(`✅ ${result.message}`, 'success');
+                
+                // Show detailed stats
+                const stats = result.stats;
+                if (stats.products_processed > 0) {
+                    this.addProgressLog(`📊 Products processed: ${stats.products_processed}`, 'info');
+                    this.addProgressLog(`✅ Successful updates: ${stats.successful_updates}`, 'success');
+                    this.addProgressLog(`❌ Failed updates: ${stats.failed_updates}`, stats.failed_updates > 0 ? 'warning' : 'info');
+                    this.addProgressLog(`📈 Success rate: ${stats.success_rate}%`, 'info');
+                    
+                    if (stats.new_records > 0) {
+                        this.addProgressLog(`💾 New records added: ${stats.new_records}`, 'success');
+                    }
+                } else {
+                    this.addProgressLog(`ℹ️ No products needed updating - all have today's data!`, 'info');
+                }
+                
+                this.addProgressLog(`🎯 Update type: ${stats.update_type}`, 'info');
+                this.addProgressLog(`📅 Data stored in PostgreSQL price_history table`, 'info');
+                
+                document.getElementById('progressTitle').textContent = 'Quick Update Complete ✅';
+            } else {
+                this.addProgressLog(`❌ Update failed: ${result.message}`, 'error');
+                document.getElementById('progressTitle').textContent = 'Quick Update Failed ❌';
             }
             
-            // Add detailed logging about what happened
-            if (result.stats.new_records > 0) {
-                this.addProgressLog(`💾 Added ${result.stats.new_records} new price records to database`, 'info');
-            }
-            
-            if (result.stats.failed_updates > 0) {
-                this.addProgressLog(`⚠️ ${result.stats.failed_updates} products failed to update`, 'warning');
-            }
-            
-            this.addProgressLog(`🎯 Update type: ${result.stats.update_type}`, 'info');
-            this.addProgressLog(`📅 All data stored in price_history table`, 'info');
-            
-            // Show completion status
+            // Show close button
             document.getElementById('progressCloseBtn').style.display = 'block';
-            document.getElementById('progressTitle').textContent = 'Quick Update Complete';
             
             this.refreshDatabaseStats();
             
