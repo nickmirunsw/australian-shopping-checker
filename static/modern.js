@@ -6,6 +6,7 @@ class ModernShoppingApp {
         this.adminSessionToken = localStorage.getItem('adminSessionToken');
         this.theme = localStorage.getItem('theme') || 'light';
         this.modalStack = []; // Track modal history for proper navigation
+        this.isClosingModal = false; // Prevent rapid modal close/open cycles
         
         this.initializeApp();
         this.setupEventListeners();
@@ -745,8 +746,20 @@ class ModernShoppingApp {
                     console.log('🔴 CLOSE BUTTON CLICKED!');
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    // Disable the button temporarily to prevent double clicks
+                    newCloseBtn.disabled = true;
+                    newCloseBtn.textContent = 'CLOSING...';
+                    
                     this.hideModal();
                     this.showToast('✅ Modal closed successfully!', 'success');
+                    
+                    // Re-enable after delay
+                    setTimeout(() => {
+                        newCloseBtn.disabled = false;
+                        newCloseBtn.textContent = '✕ CLOSE MODAL ✕';
+                    }, 1000);
                 });
                 
                 // Add backup listeners for touch devices
@@ -1202,9 +1215,29 @@ class ModernShoppingApp {
     }
 
     hideModal() {
-        // Simply hide the modal and clear the stack
-        document.getElementById('modalOverlay').classList.add('hidden');
-        this.modalStack = []; // Clear stack completely
+        console.log('🔴 hideModal() called');
+        
+        // Prevent multiple rapid calls
+        if (this.isClosingModal) {
+            console.log('🔴 Modal already closing, ignoring');
+            return;
+        }
+        
+        this.isClosingModal = true;
+        
+        // Add a small delay to prevent event conflicts
+        setTimeout(() => {
+            const modalOverlay = document.getElementById('modalOverlay');
+            if (modalOverlay) {
+                modalOverlay.classList.add('hidden');
+                console.log('🔴 Modal hidden successfully');
+            }
+            
+            this.modalStack = []; // Clear stack completely
+            this.isClosingModal = false;
+            
+            console.log('🔴 Modal close complete');
+        }, 50);
     }
 
     async showPriceHistory(productName, retailer, event = null) {
