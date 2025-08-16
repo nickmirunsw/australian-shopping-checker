@@ -187,6 +187,29 @@ async def get_database_stats_endpoint():
         "timestamp": time.time()
     }
 
+@app.get("/admin/database-stats")
+async def admin_get_database_stats_endpoint(request: Request):
+    """Get database statistics (admin endpoint - used by frontend)."""
+    if not require_admin_auth(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required"
+        )
+    
+    try:
+        stats = get_database_stats()
+        return {
+            "success": True,
+            "stats": stats,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Failed to get admin database stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve database statistics"
+        )
+
 
 @app.get("/alternatives/{search_query}")
 async def get_alternatives_endpoint(
@@ -641,6 +664,36 @@ async def daily_price_update(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to run daily price update"
+        )
+
+@app.post("/quick-update")
+async def quick_update_endpoint(request: Request):
+    """Quick update: Update 10 random products missing today's price data (admin endpoint)."""
+    if not require_admin_auth(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required"
+        )
+    
+    try:
+        from .utils.daily_updates import get_daily_updater
+        
+        logger.info("Admin initiated quick update (10 products)")
+        
+        updater = get_daily_updater()
+        result = await updater.quick_update()
+        
+        if result['success']:
+            logger.info(f"Admin quick update completed: {result['stats']}")
+            return result
+        else:
+            return result
+            
+    except Exception as e:
+        logger.error(f"Admin quick update error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to run quick update"
         )
 
 @app.post("/admin/init-database")
