@@ -1780,12 +1780,20 @@ class ModernShoppingApp {
             }
             
             // Force user to acknowledge by showing prominent button
-            document.getElementById('progressCloseBtn').style.display = 'block';
-            document.getElementById('progressCloseBtn').style.background = '#e74c3c';
-            document.getElementById('progressCloseBtn').style.color = 'white';
-            document.getElementById('progressCloseBtn').style.padding = '12px 24px';
-            document.getElementById('progressCloseBtn').style.fontSize = '16px';
-            document.getElementById('progressCloseBtn').style.fontWeight = 'bold';
+            const progressCloseBtn = document.getElementById('progressCloseBtn');
+            progressCloseBtn.style.display = 'block';
+            progressCloseBtn.style.background = '#e74c3c';
+            progressCloseBtn.style.color = 'white';
+            progressCloseBtn.style.padding = '12px 24px';
+            progressCloseBtn.style.fontSize = '16px';
+            progressCloseBtn.style.fontWeight = 'bold';
+            
+            // CRITICAL: Add click event listener to close the progress modal
+            progressCloseBtn.onclick = () => {
+                console.log('🔴 Progress modal GOT IT button clicked!');
+                this.hideProgressModal();
+                this.showToast('Quick Update results acknowledged!', 'success');
+            };
             
             this.refreshDatabaseStats();
             
@@ -1803,13 +1811,22 @@ class ModernShoppingApp {
             this.addProgressLog(`❌ Please check your internet connection and try again`, 'error');
             
             document.getElementById('progressTitle').textContent = '💥 ERROR OCCURRED!';
-            document.getElementById('progressCloseBtn').style.display = 'block';
-            document.getElementById('progressCloseBtn').textContent = 'GOT IT! ❌';
-            document.getElementById('progressCloseBtn').style.background = '#e74c3c';
-            document.getElementById('progressCloseBtn').style.color = 'white';
-            document.getElementById('progressCloseBtn').style.padding = '12px 24px';
-            document.getElementById('progressCloseBtn').style.fontSize = '16px';
-            document.getElementById('progressCloseBtn').style.fontWeight = 'bold';
+            
+            const errorCloseBtn = document.getElementById('progressCloseBtn');
+            errorCloseBtn.style.display = 'block';
+            errorCloseBtn.textContent = 'GOT IT! ❌';
+            errorCloseBtn.style.background = '#e74c3c';
+            errorCloseBtn.style.color = 'white';
+            errorCloseBtn.style.padding = '12px 24px';
+            errorCloseBtn.style.fontSize = '16px';
+            errorCloseBtn.style.fontWeight = 'bold';
+            
+            // CRITICAL: Add click event listener for error case too
+            errorCloseBtn.onclick = () => {
+                console.log('🔴 Progress modal ERROR button clicked!');
+                this.hideProgressModal();
+                this.showToast('Error acknowledged!', 'error');
+            };
         }
     }
 }
