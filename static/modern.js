@@ -675,10 +675,6 @@ class ModernShoppingApp {
                 <div class="stat-label">Items on Sale</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">$${priceHistory.average_price || '0.00'}</div>
-                <div class="stat-label">Avg Price</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-value">${this.calculateDaysBetween(priceHistory.oldest_record, priceHistory.newest_record)}</div>
                 <div class="stat-label">Days of Data</div>
             </div>
