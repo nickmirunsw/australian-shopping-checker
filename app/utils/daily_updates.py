@@ -585,6 +585,149 @@ class DailyPriceUpdater:
                 }
             }
     
+    async def force_update(self, progress_callback=None) -> Dict[str, Any]:
+        """
+        Force update: Update 5 random products even if they have today's data (for testing).
+        
+        This ignores whether products have today's data and forces updates for testing purposes.
+        Perfect for immediately testing the update logic without waiting for tomorrow.
+        """
+        logger.info("Starting force update (5 products - ignores today's data)")
+        
+        try:
+            # Get 5 random products from the database (regardless of today's data)
+            all_products = get_all_tracked_products()
+            
+            if not all_products:
+                return {
+                    "success": True,
+                    "message": "No products found in database to force update!",
+                    "stats": {
+                        "total_products_available": 0,
+                        "products_processed": 0,
+                        "successful_updates": 0,
+                        "failed_updates": 0,
+                        "new_records": 0,
+                        "success_rate": 0,
+                        "update_type": "force"
+                    }
+                }
+            
+            # Randomly select 5 products 
+            import random
+            selected_products = random.sample(all_products, min(5, len(all_products)))
+            
+            logger.info(f"Force updating {len(selected_products)} random products")
+            
+            successful_updates = 0
+            failed_updates = 0
+            new_records = 0
+            
+            for i, product in enumerate(selected_products):
+                product_name = product['product_name']
+                retailer = product['retailer']
+                
+                try:
+                    # Report progress
+                    if progress_callback:
+                        progress = int((i / len(selected_products)) * 100)
+                        await progress_callback(progress, f"Force updating {product_name}...")
+                    
+                    logger.info(f"Force updating {i+1}/{len(selected_products)}: {product_name} ({retailer})")
+                    
+                    # Extract search term and search for current price
+                    search_term = self._extract_search_term(product_name)
+                    logger.debug(f"Using search term '{search_term}' for '{product_name}'")
+                    
+                    # Get current price from retailer
+                    adapter = self.retailers.get(retailer.lower())
+                    if not adapter:
+                        logger.error(f"No adapter for retailer: {retailer}")
+                        failed_updates += 1
+                        continue
+                    
+                    # Search for product
+                    search_results = await adapter.search(search_term, "2000")
+                    
+                    if not search_results:
+                        logger.warning(f"No search results for {search_term}")
+                        failed_updates += 1
+                        continue
+                    
+                    # Find best match
+                    matcher = get_product_matcher()
+                    best_match, best_score = matcher.find_best_match(product_name, search_results)
+                    
+                    if not best_match or not best_score or best_score.total_score < 0.3:
+                        logger.warning(f"No good match found for {product_name} (score: {best_score.total_score if best_score else 0})")
+                        failed_updates += 1
+                        continue
+                    
+                    # Log the updated price data (FORCE OVERWRITE today's data)
+                    updated_data = log_price_data(
+                        product_name=product_name,
+                        retailer=retailer,
+                        price=best_match.price,
+                        was_price=best_match.was,
+                        on_sale=best_match.promoFlag or False,
+                        url=best_match.url,
+                        date_recorded=date.today()  # Force today's date
+                    )
+                    
+                    if updated_data:
+                        successful_updates += 1
+                        new_records += 1
+                        self.consecutive_failures = 0  # Reset failure counter
+                        logger.info(f"✅ Force updated {product_name}: ${best_match.price}")
+                    else:
+                        failed_updates += 1
+                        self.consecutive_failures += 1
+                        logger.warning(f"❌ Failed to log data for {product_name}")
+                
+                except Exception as e:
+                    failed_updates += 1
+                    self.consecutive_failures += 1
+                    logger.error(f"Unexpected error force updating {product_name}: {e}")
+                
+                # Short delay between requests
+                await asyncio.sleep(0.5)
+            
+            processed_products = successful_updates + failed_updates
+            success_rate = (successful_updates / processed_products) * 100 if processed_products > 0 else 0
+            
+            result = {
+                "success": True,
+                "message": f"Force update completed: {successful_updates}/{processed_products} products updated ({success_rate:.1f}% success rate)",
+                "stats": {
+                    "total_products_available": len(all_products),
+                    "products_processed": processed_products,
+                    "successful_updates": successful_updates,
+                    "failed_updates": failed_updates,
+                    "new_records": new_records,
+                    "success_rate": round(success_rate, 1),
+                    "update_type": "force"
+                }
+            }
+            
+            logger.info(f"Force update completed: {result['message']}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Force update failed: {e}")
+            return {
+                "success": False,
+                "message": f"Force update failed: {str(e)}",
+                "stats": {
+                    "total_products_available": 0,
+                    "products_processed": 0,
+                    "successful_updates": 0,
+                    "failed_updates": 0,
+                    "new_records": 0,
+                    "success_rate": 0,
+                    "update_type": "force"
+                }
+            }
+    
     async def daily_update_25(self, progress_callback=None) -> Dict[str, Any]:
         """
         Daily update: randomly select 25 products missing today's price data.

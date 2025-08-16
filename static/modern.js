@@ -117,6 +117,10 @@ class ModernShoppingApp {
             this.quickUpdate();
         });
 
+        document.getElementById('forceUpdateBtn')?.addEventListener('click', () => {
+            this.forceUpdate();
+        });
+
         // Modal close on overlay click
         document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
             if (e.target.id === 'modalOverlay') {
@@ -1826,6 +1830,129 @@ class ModernShoppingApp {
                 console.log('🔴 Progress modal ERROR button clicked!');
                 this.hideProgressModal();
                 this.showToast('Error acknowledged!', 'error');
+            };
+        }
+    }
+
+    async forceUpdate() {
+        // Force update: Update 5 random products even if they have today's data (for testing)
+        const confirmed = confirm('🔥 Force Update Today\n\nThis will FORCE update 5 random products even if they already have today\'s price data.\n\nPerfect for testing the update logic immediately!\n\nContinue?');
+        if (!confirmed) return;
+        
+        try {
+            // Show progress modal with NO close button initially
+            this.showProgressModal('Force Update (5)', 'Starting force update...');
+            document.getElementById('progressCloseBtn').style.display = 'none';
+            document.getElementById('progressCloseBtn').textContent = 'Please Wait...';
+            
+            // Simulate progress steps
+            this.updateProgress(10, '🔥 Starting Force Update...');
+            this.addProgressLog('🔥 Starting Force Update...', 'info');
+            
+            this.updateProgress(25, 'Selecting 5 random products for force update...');
+            this.addProgressLog('🎯 Selecting 5 random products (ignoring today\'s data)...', 'info');
+            
+            this.updateProgress(50, 'Sending request to server...');
+            this.addProgressLog('📡 Sending force update request...', 'info');
+            
+            const response = await this.makeAuthenticatedRequest('/force-update', {
+                method: 'POST'
+            });
+            
+            this.updateProgress(75, 'Processing response...');
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to start force update');
+            }
+            
+            const result = await response.json();
+            
+            this.updateProgress(100, 'Complete!');
+            
+            // Clear existing logs and show final results
+            document.getElementById('progressLogs').innerHTML = '';
+            
+            if (result.success) {
+                // Show BIG SUCCESS message
+                this.addProgressLog(`🎉 SUCCESS! ${result.message}`, 'success');
+                this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                
+                // Show detailed stats
+                const stats = result.stats;
+                this.addProgressLog(`📊 PRODUCTS PROCESSED: ${stats.products_processed}`, 'info');
+                this.addProgressLog(`✅ SUCCESSFUL UPDATES: ${stats.successful_updates}`, 'success');
+                this.addProgressLog(`❌ FAILED UPDATES: ${stats.failed_updates}`, stats.failed_updates > 0 ? 'warning' : 'info');
+                this.addProgressLog(`📈 SUCCESS RATE: ${stats.success_rate}%`, 'info');
+                
+                if (stats.new_records > 0) {
+                    this.addProgressLog(`💾 NEW RECORDS ADDED: ${stats.new_records}`, 'success');
+                }
+                
+                this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                this.addProgressLog(`🎯 Update type: FORCE UPDATE (for testing)`, 'info');
+                this.addProgressLog(`📅 Data stored in PostgreSQL price_history table`, 'info');
+                
+                document.getElementById('progressTitle').textContent = '🎉 FORCE UPDATE SUCCESSFUL!';
+                document.getElementById('progressCloseBtn').textContent = 'GOT IT! ✅';
+            } else {
+                // Show BIG FAILURE message
+                this.addProgressLog(`💥 FAILED! ${result.message}`, 'error');
+                this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+                this.addProgressLog(`❌ The Force Update did not complete successfully`, 'error');
+                this.addProgressLog(`❌ Please try again or contact support`, 'error');
+                
+                document.getElementById('progressTitle').textContent = '💥 FORCE UPDATE FAILED!';
+                document.getElementById('progressCloseBtn').textContent = 'GOT IT! ❌';
+            }
+            
+            // Force user to acknowledge by showing prominent button
+            const progressCloseBtn = document.getElementById('progressCloseBtn');
+            progressCloseBtn.style.display = 'block';
+            progressCloseBtn.style.background = '#f39c12';
+            progressCloseBtn.style.color = 'white';
+            progressCloseBtn.style.padding = '12px 24px';
+            progressCloseBtn.style.fontSize = '16px';
+            progressCloseBtn.style.fontWeight = 'bold';
+            
+            // CRITICAL: Add click event listener to close the progress modal
+            progressCloseBtn.onclick = () => {
+                console.log('🔴 Force update GOT IT button clicked!');
+                this.hideProgressModal();
+                this.showToast('Force Update results acknowledged!', 'success');
+            };
+            
+            this.refreshDatabaseStats();
+            
+        } catch (error) {
+            console.error('Force update error:', error);
+            
+            // Clear logs and show error
+            document.getElementById('progressLogs').innerHTML = '';
+            this.updateProgress(100, 'Error occurred');
+            
+            this.addProgressLog(`💥 CRITICAL ERROR!`, 'error');
+            this.addProgressLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+            this.addProgressLog(`❌ Error: ${error.message}`, 'error');
+            this.addProgressLog(`❌ The Force Update could not complete`, 'error');
+            this.addProgressLog(`❌ Please check your internet connection and try again`, 'error');
+            
+            document.getElementById('progressTitle').textContent = '💥 ERROR OCCURRED!';
+            
+            const errorCloseBtn = document.getElementById('progressCloseBtn');
+            errorCloseBtn.style.display = 'block';
+            errorCloseBtn.textContent = 'GOT IT! ❌';
+            errorCloseBtn.style.background = '#e74c3c';
+            errorCloseBtn.style.color = 'white';
+            errorCloseBtn.style.padding = '12px 24px';
+            errorCloseBtn.style.fontSize = '16px';
+            errorCloseBtn.style.fontWeight = 'bold';
+            
+            // CRITICAL: Add click event listener for error case too
+            errorCloseBtn.onclick = () => {
+                console.log('🔴 Force update ERROR button clicked!');
+                this.hideProgressModal();
+                this.showToast('Force update error acknowledged!', 'error');
             };
         }
     }

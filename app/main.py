@@ -696,6 +696,36 @@ async def quick_update_endpoint(request: Request):
             detail="Failed to run quick update"
         )
 
+@app.post("/force-update")
+async def force_update_endpoint(request: Request):
+    """Force update: Update 5 random products even if they have today's data (for testing)."""
+    if not require_admin_auth(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required"
+        )
+    
+    try:
+        from .utils.daily_updates import get_daily_updater
+        
+        logger.info("Admin initiated force update (5 products - for testing)")
+        
+        updater = get_daily_updater()
+        result = await updater.force_update()
+        
+        if result['success']:
+            logger.info(f"Admin force update completed: {result['stats']}")
+            return result
+        else:
+            return result
+            
+    except Exception as e:
+        logger.error(f"Admin force update error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to run force update"
+        )
+
 @app.post("/admin/init-database")
 async def admin_init_database(request: Request):
     """Initialize the database with required tables (admin only)."""
