@@ -346,8 +346,8 @@ class ModernShoppingApp {
         const card = document.createElement('div');
         card.className = 'product-card';
         
-        // Handle case where no alternatives found
-        if (!result.alternatives || result.alternatives.length === 0) {
+        // Handle case where no match found (check both bestMatch and alternatives)
+        if (!result.bestMatch && (!result.alternatives || result.alternatives.length === 0)) {
             card.innerHTML = `
                 <div class="product-header" style="background: linear-gradient(135deg, var(--color-gray-500), var(--color-gray-600));">
                     <div class="product-name">${this.capitalizeFirst(result.input)}</div>
@@ -360,7 +360,7 @@ class ModernShoppingApp {
                     <div class="empty-alternatives">
                         <i data-lucide="search-x" style="width: 48px; height: 48px; color: var(--color-gray-400); margin-bottom: 1rem;"></i>
                         <p style="color: var(--text-secondary); text-align: center; margin: 0;">
-                            Sorry, we couldn't find "${result.input}" at Woolworths. 
+                            Sorry, we couldn't find "${result.input}" at ${result.retailer || 'Woolworths'}. 
                             Try searching for a more generic term like "milk" instead of "Dairy Farmers milk 2L".
                         </p>
                     </div>
@@ -369,8 +369,24 @@ class ModernShoppingApp {
             return card;
         }
         
-        const bestMatch = result.alternatives[0];
-        const onSaleCount = result.alternatives.filter(alt => alt.onSale).length;
+        // Create best match object from the result data
+        const bestMatch = result.bestMatch ? {
+            name: result.bestMatch,
+            price: result.price,
+            was: result.was,
+            onSale: result.onSale,
+            promoText: result.promoText,
+            url: result.url,
+            inStock: result.inStock,
+            retailer: result.retailer
+        } : (result.alternatives && result.alternatives.length > 0 ? result.alternatives[0] : null);
+        
+        if (!bestMatch) {
+            // This shouldn't happen but let's handle it gracefully
+            return this.createProductCard({...result, bestMatch: null, alternatives: []});
+        }
+        
+        const onSaleCount = (result.alternatives ? result.alternatives.filter(alt => alt.onSale).length : 0) + (result.onSale ? 1 : 0);
         
         card.innerHTML = `
             <div class="product-header">
