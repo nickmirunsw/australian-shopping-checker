@@ -35,6 +35,10 @@ class ModernShoppingApp {
     }
 
     setupEventListeners() {
+        // Prevent duplicate event listeners
+        if (this.eventListenersSetup) return;
+        this.eventListenersSetup = true;
+        
         // Theme toggle
         document.getElementById('themeToggle')?.addEventListener('click', () => {
             this.toggleTheme();
@@ -685,15 +689,12 @@ class ModernShoppingApp {
         // Store original products for search
         this.allProducts = products;
         
-        // Use proper modal stack management
-        this.showModal('tracked-products', { products });
-        
         const modal = document.getElementById('modalContent');
         modal.innerHTML = `
             <div style="padding: 2rem; max-width: 900px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h2 style="margin: 0; color: var(--text-primary);">Tracked Products (${products.length})</h2>
-                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
+                    <button id="closeModalBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
                 </div>
                 
                 <!-- Search Bar -->
@@ -704,7 +705,6 @@ class ModernShoppingApp {
                         placeholder="Search tracked products..." 
                         class="input"
                         style="width: 100%; padding: 0.75rem; border: 1.5px solid var(--color-gray-300); border-radius: 0.5rem; font-size: 0.9rem;"
-                        oninput="app.filterProducts(this.value)"
                     >
                 </div>
                 
@@ -712,16 +712,25 @@ class ModernShoppingApp {
             </div>
         `;
         
-        this.showModal('tracked-products', products);
+        // Show modal and set up event listeners
+        this.showModal('tracked-products', { products });
         this.renderProducts(products);
         
-        // Focus search input
+        // Set up modal-specific event listeners
         setTimeout(() => {
+            // Close button
+            const closeBtn = document.getElementById('closeModalBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => this.hideModal());
+            }
+            
+            // Search input
             const searchInput = document.getElementById('productSearch');
             if (searchInput) {
+                searchInput.addEventListener('input', (e) => this.filterProducts(e.target.value));
                 searchInput.focus();
             }
-        }, 100);
+        }, 50);
     }
 
     filterProducts(searchTerm) {
@@ -1167,27 +1176,9 @@ class ModernShoppingApp {
     }
 
     hideModal() {
-        // Pop current modal from stack
-        this.modalStack.pop();
-        
-        // If there's a previous modal, restore it
-        if (this.modalStack.length > 0) {
-            const previousModal = this.modalStack[this.modalStack.length - 1];
-            
-            if (previousModal.type === 'tracked-products') {
-                // Restore tracked products modal
-                this.viewTrackedProducts();
-                return;
-            } else if (previousModal.type === 'previous' && previousModal.content) {
-                // Restore previous modal content
-                document.getElementById('modalContent').innerHTML = previousModal.content;
-                return;
-            }
-        }
-        
-        // No previous modal, hide completely
+        // Simply hide the modal and clear the stack
         document.getElementById('modalOverlay').classList.add('hidden');
-        this.modalStack = []; // Clear stack
+        this.modalStack = []; // Clear stack completely
     }
 
     async showPriceHistory(productName, retailer, event = null) {
@@ -1237,7 +1228,7 @@ class ModernShoppingApp {
             <div style="padding: 2rem; max-width: 1000px; width: 90vw;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h2 style="margin: 0; color: var(--text-primary);">Price History: ${productName}</h2>
-                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
+                    <button id="closePriceHistoryBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
                 </div>
                 
                 <div style="margin-bottom: 1.5rem; height: 300px; position: relative; overflow: hidden;">
@@ -1275,6 +1266,14 @@ class ModernShoppingApp {
         `;
         
         this.showModal('price-history', { productName, retailer, history });
+        
+        // Set up close button event listener
+        setTimeout(() => {
+            const closeBtn = document.getElementById('closePriceHistoryBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => this.hideModal());
+            }
+        }, 50);
         
         // Load sale prediction
         this.loadSalePrediction(productName, retailer);
@@ -1543,7 +1542,7 @@ class ModernShoppingApp {
             <div style="padding: 2rem; max-width: 800px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h2 style="margin: 0;">My Favorites (${favorites.length})</h2>
-                    <button onclick="app.hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                    <button id="closeFavoritesBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
                 </div>
                 
                 <div style="max-height: 60vh; overflow-y: auto;">
@@ -1580,6 +1579,14 @@ class ModernShoppingApp {
         `;
         
         this.showModal('favorites', favorites);
+        
+        // Set up close button event listener
+        setTimeout(() => {
+            const closeBtn = document.getElementById('closeFavoritesBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => this.hideModal());
+            }
+        }, 50);
     }
 
     async removeFavorite(favoriteId) {
