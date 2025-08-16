@@ -108,10 +108,6 @@ class ModernShoppingApp {
             this.clearDatabase();
         });
 
-        document.getElementById('dailyUpdateBtn')?.addEventListener('click', () => {
-            this.runDailyUpdate();
-        });
-
         document.getElementById('viewFavoritesBtn')?.addEventListener('click', () => {
             this.viewFavorites();
         });
@@ -953,53 +949,6 @@ class ModernShoppingApp {
         }
     }
 
-    async runDailyUpdate() {
-        try {
-            // Simple confirmation for 25 random items that DON'T HAVE PRICE FOR TODAY
-            const confirmed = confirm(
-                '📊 Price Update (25)\n\n' +
-                'This will update 25 random products from your database that DO NOT have a price for today\'s date.\n\n' +
-                'Run this multiple times throughout the day to gradually build your price database.\n\n' +
-                'Continue?'
-            );
-            
-            if (!confirmed) return;
-            
-            this.showDailyUpdateProgress();
-            this.addProgressLog('🔍 Finding 25 products missing today\'s price data...', 'info');
-            
-            // Call the 25-item daily update endpoint
-            const response = await fetch('/daily-update-25', {
-                method: 'POST'
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to start price update');
-            }
-            
-            const result = await response.json();
-            
-            this.addProgressLog(`✅ Update completed!`, 'success');
-            this.addProgressLog(`📊 Results: ${result.stats.successful_updates}/${result.stats.products_processed} products updated`, 'info');
-            
-            if (result.stats.success_rate) {
-                this.addProgressLog(`📈 Success rate: ${result.stats.success_rate}%`, 'info');
-            }
-            
-            // Show completion status
-            document.getElementById('progressCloseBtn').style.display = 'block';
-            document.getElementById('progressTitle').textContent = 'Price Update Complete';
-            
-            // Force refresh database stats
-            this.refreshDatabaseStats();
-            
-        } catch (error) {
-            console.error('Price update error:', error);
-            this.addProgressLog(`❌ Error: ${error.message}`, 'error');
-            document.getElementById('progressCloseBtn').style.display = 'block';
-        }
-    }
 
     showProgressModal(title, status) {
         console.log('📋 Showing progress modal:', title, status);
@@ -1650,7 +1599,7 @@ class ModernShoppingApp {
         if (!confirmed) return;
         
         try {
-            this.showDailyUpdateProgress();
+            this.showProgressModal('Quick Update (10)', 'Updating prices...');
             this.addProgressLog('⚡ Starting Quick Update...', 'info');
             this.addProgressLog('Selecting 10 products missing today\'s price data...', 'info');
             

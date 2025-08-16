@@ -181,20 +181,6 @@ async def run_quick_update():
         raise HTTPException(status_code=500, detail=f"Error running quick update: {str(e)}")
 
 
-@app.post("/daily-update-25")
-async def run_daily_update_25():
-    """
-    Daily update: Update 25 random products missing today's price data.
-    
-    Perfect for spreading updates throughout the day to gradually build database.
-    """
-    try:
-        updater = get_daily_updater()
-        result = await updater.daily_update_25()
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error running daily update: {str(e)}")
-
 
 @app.post("/daily-price-update")
 async def run_daily_price_update():
