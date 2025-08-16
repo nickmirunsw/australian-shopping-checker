@@ -7,6 +7,7 @@ class ModernShoppingApp {
         this.theme = localStorage.getItem('theme') || 'light';
         this.modalStack = []; // Track modal history for proper navigation
         this.isClosingModal = false; // Prevent rapid modal close/open cycles
+        this.statsRefreshInterval = null; // Auto-refresh stats timer
         
         this.initializeApp();
         this.setupEventListeners();
@@ -514,9 +515,24 @@ class ModernShoppingApp {
         if (isAuthenticated) {
             loginForm.classList.add('hidden');
             controls.classList.remove('hidden');
+            
+            // Start auto-refreshing stats every 10 seconds when admin is logged in
+            if (!this.statsRefreshInterval) {
+                this.statsRefreshInterval = setInterval(() => {
+                    this.refreshDatabaseStats();
+                }, 10000); // 10 seconds
+                console.log('✅ Started auto-refresh stats every 10 seconds');
+            }
         } else {
             loginForm.classList.remove('hidden');
             controls.classList.add('hidden');
+            
+            // Stop auto-refreshing when not logged in
+            if (this.statsRefreshInterval) {
+                clearInterval(this.statsRefreshInterval);
+                this.statsRefreshInterval = null;
+                console.log('🛑 Stopped auto-refresh stats');
+            }
         }
     }
 
@@ -743,7 +759,7 @@ class ModernShoppingApp {
                 newCloseBtn.style.borderRadius = '8px';
                 newCloseBtn.style.cursor = 'pointer';
                 newCloseBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-                newCloseBtn.textContent = '✕ CLOSE MODAL ✕';
+                newCloseBtn.textContent = 'CLOSE';
                 
                 // Add multiple event listeners for maximum reliability
                 newCloseBtn.addEventListener('click', (e) => {
@@ -762,7 +778,7 @@ class ModernShoppingApp {
                     // Re-enable after delay
                     setTimeout(() => {
                         newCloseBtn.disabled = false;
-                        newCloseBtn.textContent = '✕ CLOSE MODAL ✕';
+                        newCloseBtn.textContent = 'CLOSE';
                     }, 1000);
                 });
                 

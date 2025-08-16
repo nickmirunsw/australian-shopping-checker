@@ -609,11 +609,6 @@ def get_database_stats() -> Dict[str, Any]:
             cursor.execute("SELECT COUNT(*) FROM price_history WHERE on_sale = true")
             on_sale_count = cursor.fetchone()[0]
             
-            # Average price
-            cursor.execute("SELECT AVG(price) FROM price_history WHERE price IS NOT NULL")
-            avg_price_result = cursor.fetchone()[0]
-            avg_price = float(avg_price_result) if avg_price_result else 0.0
-            
             return {
                 'price_history': {
                     'total_records': total_records,
@@ -622,8 +617,7 @@ def get_database_stats() -> Dict[str, Any]:
                     'oldest_record': date_range[0].isoformat() if date_range and date_range[0] else None,
                     'newest_record': date_range[1].isoformat() if date_range and date_range[1] else None,
                     'todays_updates': todays_updates,
-                    'on_sale_count': on_sale_count,
-                    'average_price': round(avg_price, 2)
+                    'on_sale_count': on_sale_count
                 }
             }
             

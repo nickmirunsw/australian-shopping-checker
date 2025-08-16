@@ -201,7 +201,7 @@ class SaleChecker:
                 
                 # Get multiple matches using the matcher
                 matcher = get_product_matcher()
-                all_matches = matcher.find_multiple_matches(item, products, max_results=20)
+                all_matches = matcher.find_multiple_matches(item, products, max_results=5)
                 
                 if all_matches:
                     best_match = all_matches[0]
